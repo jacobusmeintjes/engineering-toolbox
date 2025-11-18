@@ -1,0 +1,27 @@
+﻿
+<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>e45d8283-b469-435f-b022-57efcbe31ae7</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="apm-server\**" />
+    <EmbeddedResource Remove="apm-server\**" />
+    <None Remove="apm-server\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Elasticsearch" Version="9.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ElasticSearch.ApiService\ElasticSearch.ApiService.csproj" />
+    <ProjectReference Include="..\ElasticSearch.Web\ElasticSearch.Web.csproj" />
+  </ItemGroup>
+
+</Project>

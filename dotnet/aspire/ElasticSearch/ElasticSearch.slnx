@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ElasticSearch.ApiService/ElasticSearch.ApiService.csproj" />
+  <Project Path="ElasticSearch.AppHost/ElasticSearch.AppHost.csproj" />
+  <Project Path="ElasticSearch.ServiceDefaults/ElasticSearch.ServiceDefaults.csproj" />
+  <Project Path="ElasticSearch.Web/ElasticSearch.Web.csproj" />
+</Solution>
