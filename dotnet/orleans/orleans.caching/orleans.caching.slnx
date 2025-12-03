@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="orleans.caching.ApiService/orleans.caching.ApiService.csproj" />
+  <Project Path="orleans.caching.AppHost/orleans.caching.AppHost.csproj" />
+  <Project Path="orleans.caching.contracts/orleans.caching.contracts.csproj" Id="d0434208-1c7d-4f59-82cf-5fe8cad48d25" />
+  <Project Path="orleans.caching.ServiceDefaults/orleans.caching.ServiceDefaults.csproj" />
+  <Project Path="orleans.caching.Web/orleans.caching.Web.csproj" />
+</Solution>

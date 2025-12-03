@@ -1,0 +1,15 @@
+﻿@page "/caching"
+@using Orleans.Caching.Contracts.Grains
+@inject IClusterClient clusterClient
+
+<h3>Caching</h3>
+
+
+@code {
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        //clusterClient.GetGrain<ICacheGrain>(0);
+    }
+}
