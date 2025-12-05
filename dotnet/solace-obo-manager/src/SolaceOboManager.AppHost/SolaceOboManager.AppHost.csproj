@@ -1,0 +1,28 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
+	
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsAspireHost>true</IsAspireHost>
+		<UserSecretsId>e71f13d4-4730-49c2-a13c-dff3d62b8bfe</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.2" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
+		<PackageReference Include="Refit" Version="9.0.2" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
+
+		<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.0.2" />
+		<PackageReference Include="Aspire.Hosting.Redis" Version="13.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SolaceOboManager.Client\SolaceOboManager.Client.csproj" />
+		<ProjectReference Include="..\SolaceOboManager.Manager\SolaceOboManager.Manager.csproj" />
+		<ProjectReference Include="..\SolaceOboManager.Producer\SolaceOboManager.Producer.csproj" />
+	</ItemGroup>
+
+</Project>
