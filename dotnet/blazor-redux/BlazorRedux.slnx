@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="BlazorRedux.Tests/BlazorRedux.Tests.csproj" />
+  </Folder>
+  <Project Path="BlazorRedux.ApiService/BlazorRedux.ApiService.csproj" />
+  <Project Path="BlazorRedux.AppHost/BlazorRedux.AppHost.csproj" />
+  <Project Path="BlazorRedux.ServiceDefaults/BlazorRedux.ServiceDefaults.csproj" />
+  <Project Path="BlazorRedux.Web/BlazorRedux.Web.csproj" />
+</Solution>
