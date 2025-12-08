@@ -88,4 +88,6 @@ builder.AddProject<Projects.SolaceOboManager_Producer>("solaceobomanager-produce
     .WithExplicitStart()
     .WithReplicas(1);
 
+builder.AddProject<Projects.SolaceOboManager_Channels_Worker>("solaceobomanager-channels-worker");
+
 builder.Build().Run();

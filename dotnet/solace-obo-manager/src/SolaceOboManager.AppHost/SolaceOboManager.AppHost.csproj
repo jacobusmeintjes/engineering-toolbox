@@ -20,6 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\SolaceOboManager.Channels.Worker\SolaceOboManager.Channels.Worker.csproj" />
 		<ProjectReference Include="..\SolaceOboManager.Client\SolaceOboManager.Client.csproj" />
 		<ProjectReference Include="..\SolaceOboManager.Manager\SolaceOboManager.Manager.csproj" />
 		<ProjectReference Include="..\SolaceOboManager.Producer\SolaceOboManager.Producer.csproj" />
