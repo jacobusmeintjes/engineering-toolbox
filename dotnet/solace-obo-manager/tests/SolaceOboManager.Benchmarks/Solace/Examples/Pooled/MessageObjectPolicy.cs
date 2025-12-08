@@ -20,3 +20,4 @@ namespace SolaceOboManager.Benchmarks.Solace.Examples.Pooled
             return true;
         }
     }
+}
