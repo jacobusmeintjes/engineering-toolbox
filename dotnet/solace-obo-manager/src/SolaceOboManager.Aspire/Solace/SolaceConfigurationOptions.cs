@@ -1,4 +1,4 @@
-﻿namespace SolaceOboManager.AdminService.SolaceConfig;
+﻿namespace SolaceOboManager.Aspire.Solace;
 
 
 public class SolaceConfigurationOptions

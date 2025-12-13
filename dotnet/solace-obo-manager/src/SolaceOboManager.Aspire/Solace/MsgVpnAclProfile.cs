@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SolaceOboManager.AdminService.SolaceConfig;
+namespace SolaceOboManager.Aspire.Solace;
 
-public class MsgVpnAclProfile
+internal class MsgVpnAclProfile
 {
     [JsonPropertyName("aclProfileName")]
     public string AclProfileName { get; set; }
@@ -21,4 +21,5 @@ public class MsgVpnAclProfile
     
     [JsonPropertyName("subscribeTopicDefaultAction")] 
     public string SubscribeTopicDefaultAction { get; set; } = "disallow";
+    
 }

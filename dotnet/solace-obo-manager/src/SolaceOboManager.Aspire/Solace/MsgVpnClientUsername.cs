@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SolaceOboManager.AdminService.SolaceConfig;
+namespace SolaceOboManager.Aspire.Solace;
 
 
-public class MsgVpnClientUsername
+internal class MsgVpnClientUsername
 {
     [JsonPropertyName("aclProfileName")]
     public string AclProfileName { get; set; } = "default";

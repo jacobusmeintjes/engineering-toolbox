@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SolaceOboManager.AdminService.SolaceConfig;
+namespace SolaceOboManager.Aspire.Solace;
 
-public class MsgVpnClientProfile
+internal class MsgVpnClientProfile
 {
     [JsonPropertyName("allowGuaranteedMsgReceiveEnabled")]
     public bool AllowGuaranteedMsgReceiveEnabled { get; } = true;

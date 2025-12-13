@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace SolaceOboManager.AdminService.SolaceConfig;
+namespace SolaceOboManager.Aspire.Solace;
 
-public class MsgVpnAclProfilePublishTopicException
+internal class MsgVpnAclProfilePublishTopicException
 {
     [JsonPropertyName("aclProfileName")]
     public string AclProfileName { get; set; }
