@@ -1,0 +1,90 @@
+{
+	"info": {
+		"_postman_id": "c4eee150-5b19-4032-9c29-3f1b0f07bba5",
+		"name": "Chaos Control",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1779718"
+	},
+	"item": [
+		{
+			"name": "Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/metrics",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Proxies Get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/proxies",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"proxies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Proxies Post",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/proxies",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"proxies"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "https://localhost:7209",
+			"type": "default"
+		}
+	]
+}
