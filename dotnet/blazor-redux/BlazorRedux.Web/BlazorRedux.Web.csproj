@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\solace-obo-manager\src\Solace.MessagingClient\Solace.MessagingClient.csproj" />
     <ProjectReference Include="..\BlazorRedux.ServiceDefaults\BlazorRedux.ServiceDefaults.csproj" />
   </ItemGroup>
 

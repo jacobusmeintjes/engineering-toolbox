@@ -53,7 +53,7 @@ namespace BlazorRedux.Web.Features.Reducers
 
 namespace BlazorRedux.Web.Features.Effects
 {
-    // Effects must be in their own NON-STATIC class
+    // Effects must be in their own NON-STATIedgitC class
     public class CounterEffects
     {
         private readonly ILogger<CounterEffects> _logger;

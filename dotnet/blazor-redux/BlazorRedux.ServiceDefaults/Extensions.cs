@@ -61,6 +61,7 @@ public static class Extensions
             })
             .WithTracing(tracing =>
             {
+                tracing.AddSource("Fluxor.Actions");
                 tracing.AddSource(builder.Environment.ApplicationName)
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
@@ -71,6 +72,7 @@ public static class Extensions
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
+
             });
 
         builder.AddOpenTelemetryExporters();

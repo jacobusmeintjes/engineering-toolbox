@@ -1,0 +1,37 @@
+﻿@using BlazorRedux.Web.Features.Solace.State
+@using Fluxor
+@using SolaceOboManager.Benchmarks.Solace
+@using System.Reactive.Linq
+@inject IState<SolaceState> SolaceState
+@inject SessionFactory SessionFactory
+@rendermode InteractiveServer
+
+<div class="mt-3">
+    <p><strong>Solace Status:</strong> @(_isConnected ? "✅ Connected" : "❌ Not Connected")</p>
+</div>
+
+@code {
+
+    private IDisposable? _isConnectedSubscription;
+    private bool _isConnected;
+
+    protected override Task OnInitializedAsync()
+    {
+        var syncContext = System.Threading.SynchronizationContext.Current;
+
+        _isConnectedSubscription = SessionFactory.IsConnected
+         .ObserveOn(syncContext)
+         .Subscribe(isConnected =>
+        {            
+            _isConnected = isConnected;
+            StateHasChanged();            
+        });
+
+        return base.OnInitializedAsync();
+    }
+
+    public void Dispose()
+    {
+        _isConnectedSubscription?.Dispose();
+    }
+}

@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolaceOboManager.Channels.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolaceOboManager.Aspire", "src\SolaceOboManager.Aspire\SolaceOboManager.Aspire.csproj", "{A11B4C06-8708-4218-8948-1B53619D1DF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solace.MessagingClient", "src\Solace.MessagingClient\Solace.MessagingClient.csproj", "{A873E5B9-40EC-4F31-A37C-596BACEEB351}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,10 @@ Global
 		{A11B4C06-8708-4218-8948-1B53619D1DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A11B4C06-8708-4218-8948-1B53619D1DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A11B4C06-8708-4218-8948-1B53619D1DF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A873E5B9-40EC-4F31-A37C-596BACEEB351}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A873E5B9-40EC-4F31-A37C-596BACEEB351}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A873E5B9-40EC-4F31-A37C-596BACEEB351}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A873E5B9-40EC-4F31-A37C-596BACEEB351}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +109,7 @@ Global
 		{90772216-C687-4299-9E83-A66DC5212CD3} = {93A61FF2-E416-470A-BC58-6433FCB15E76}
 		{546B4E2E-2B0B-F820-6DBB-E75252BC59D4} = {39ECF665-64BA-4AE7-8217-A155DEF64B51}
 		{A11B4C06-8708-4218-8948-1B53619D1DF4} = {39ECF665-64BA-4AE7-8217-A155DEF64B51}
+		{A873E5B9-40EC-4F31-A37C-596BACEEB351} = {B191BADD-6702-44A3-B2D8-D4C012EB64B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C6DD300C-AB99-4CF0-8A48-2F5578BC47CB}

@@ -1,0 +1,40 @@
+﻿@page "/"
+@using BlazorFluxor.App.Store
+@using Fluxor
+@inject IState<CounterState> CounterState
+@inject IStore Store
+@rendermode InteractiveServer
+<Fluxor.Blazor.Web.StoreInitializer />
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+
+
+@if (CounterState.Value == null)
+{
+    <p>State is null!</p>
+}
+else
+{
+    <p>Current count: @CounterState.Value.Count</p>
+}
+
+
+@code {
+    private bool isStoreInitialized = false;
+
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        //await Store.InitializeAsync();
+        await Store.Initialized;
+        //isStoreInitialized = true;
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

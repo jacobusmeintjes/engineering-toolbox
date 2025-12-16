@@ -1,0 +1,61 @@
+﻿// Pages/Counter.razor
+@page "/counter"
+@using BlazorFluxor.App.Store
+@using Fluxor
+@using System.Reactive
+@using System.Reactive.Linq
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@implements IDisposable
+@inject IState<CounterState> CounterState
+@inject IDispatcher Dispatcher
+@inject BlazorFluxor.App.Worker.CounterService CounterService
+
+@rendermode InteractiveServer
+
+
+<h1>Counter</h1>
+
+@if (CounterState.Value == null)
+{
+    <p>State is null!</p>
+}
+else
+{
+    <p>Current count: @CounterState.Value.Count</p>
+}
+
+<button @onclick="Increment">Increment</button>
+
+@code {
+    private IDisposable? _subscription;
+
+    protected override void OnInitialized()
+    {
+        var syncContext = SynchronizationContext.Current!;
+
+        _subscription = CounterService.CounterUpdates
+
+            .ObserveOn(syncContext)
+            .Subscribe(counter =>
+            {
+                System.Console.WriteLine(Guid.NewGuid());
+                Increment();
+            });
+
+        base.OnInitialized();
+    }
+
+    void Increment() {        
+        Dispatcher.Dispatch(new IncrementCounterAction());
+    }
+
+    public void Dispose() {
+
+    }
+    protected override ValueTask DisposeAsyncCore(bool disposing)
+    {
+        System.Console.WriteLine("DISPOSING!!!!");
+        _subscription?.Dispose();
+        return base.DisposeAsyncCore(disposing);
+    }
+}
