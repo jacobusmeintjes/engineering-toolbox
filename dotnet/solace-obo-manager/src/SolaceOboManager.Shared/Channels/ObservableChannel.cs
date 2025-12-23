@@ -24,7 +24,7 @@ namespace SolaceOboManager.Shared.Channels
             {
                 FullMode = BoundedChannelFullMode.Wait
             });
-            _meter = new Meter($"Channel.{_channelName}", "1.0,0");
+            _meter = new Meter($"Channel.{_channelName}", "1.0.0");
 
             // Counters
             _messagesPublished = _meter.CreateCounter<long>(

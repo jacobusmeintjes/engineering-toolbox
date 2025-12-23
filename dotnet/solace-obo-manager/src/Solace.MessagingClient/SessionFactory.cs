@@ -6,7 +6,7 @@ using System.Reactive.Subjects;
 
 namespace SolaceOboManager.Benchmarks.Solace
 {
-    public record SolaceMessage(string ToipicName, byte[] binaryAttachment, DateTime ReceivedAt);
+    public record SolaceMessage(string TopicName, byte[] binaryAttachment, DateTime ReceivedAt);
     public record SolaceSessionEvent(string Event, string Description);
     public record SolaceContextEvent(int ResponseCode, string ErrorStr, Exception? Exception);
 
