@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "18f65214-2583-4741-90b5-a5af814b0cad",
+		"name": "ToxiProxy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1779718"
+	},
+	"item": [
+		{
+			"name": "Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/metrics",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Proxies Get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/proxies",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"proxies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Proxies Post",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/proxies",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"proxies"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "http://localhost:8474",
+			"type": "default"
+		}
+	]
+}

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fluxor" Version="6.9.0" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="6.9.0" />
+    <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\solace-obo-manager\src\Solace.MessagingClient\Solace.MessagingClient.csproj" />
+    <ProjectReference Include="..\BlazorRedux.ServiceDefaults\BlazorRedux.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

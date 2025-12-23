@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Chaos/">
+    <Project Path="Chaos/ToxiProxy.Aspire/ToxiProxy.Aspire.csproj" Id="da277b7d-b6f0-4c81-847d-025547ac3d20" />
+    <Project Path="ChaosController/ChaosController.csproj" />
+  </Folder>
+  <Folder Name="/Flex/">
+    <Project Path="BlazorFluxor.App/BlazorFluxor.App.csproj" />
+    <Project Path="Fluxor/Source/Lib/Fluxor.Blazor.Web/Fluxor.Blazor.Web.csproj" />
+    <Project Path="Fluxor/Source/Lib/Fluxor/Fluxor.csproj" />
+  </Folder>
+  <Folder Name="/Solace/">
+    <Project Path="../solace-obo-manager/src/Solace.MessagingClient/Solace.MessagingClient.csproj" />
+    <Project Path="../solace-obo-manager/src/SolaceOboManager.Aspire/SolaceOboManager.Aspire.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="BlazorRedux.Tests/BlazorRedux.Tests.csproj" />
+  </Folder>
+  <Project Path="BlazorRedux.ApiService/BlazorRedux.ApiService.csproj" />
+  <Project Path="BlazorRedux.AppHost/BlazorRedux.AppHost.csproj" />
+  <Project Path="BlazorRedux.ServiceDefaults/BlazorRedux.ServiceDefaults.csproj" />
+  <Project Path="BlazorRedux.Web/BlazorRedux.Web.csproj" />
+</Solution>

@@ -1,0 +1,6 @@
+@ChaosController_HostAddress = http://localhost:5090
+
+GET {{ChaosController_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

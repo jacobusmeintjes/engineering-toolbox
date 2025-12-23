@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-SolaceOboManager.Client-6b450e38-580c-46de-bbe1-7143e07f8156</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+		<PackageReference Include="SolaceSystems.Solclient.Messaging" Version="10.28.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SolaceOboManager.ServiceDefaults\SolaceOboManager.ServiceDefaults.csproj" />
+		<ProjectReference Include="..\SolaceOboManager.Shared\SolaceOboManager.Shared.csproj" />
+	</ItemGroup>
+</Project>

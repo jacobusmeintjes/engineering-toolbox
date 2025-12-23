@@ -1,0 +1,45 @@
+<Fluxor.Blazor.Web.StoreInitializer />
+@page "/counter"
+@using BlazorRedux.Web.Features.Action
+@using BlazorRedux.Web.Features.State
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@inherits FluxorComponent
+@inject IState<CounterState> CounterState
+@inject IDispatcher Dispatcher
+
+@rendermode InteractiveServer
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @CounterState.Value.Count</p>
+<p><small>Last updated: @CounterState.Value.LastUpdated.ToString("HH:mm:ss.fff")</small></p>
+
+<button class="btn btn-primary" @onclick="IncrementCounter">Increment</button>
+<button class="btn btn-secondary" @onclick="DecrementCounter">Decrement</button>
+
+<div class="mt-3">
+    <p><strong>Fluxor Status:</strong> @(CounterState.Value != null ? "✅ Connected" : "❌ Not Connected")</p>
+</div>
+
+@code {
+    private void IncrementCounter()
+    {
+        System.Diagnostics.Debug.WriteLine($"[COMPONENT] IncrementCounter button clicked at {DateTime.Now}");
+        Dispatcher.Dispatch(new IncrementCounterAction());
+        System.Diagnostics.Debug.WriteLine($"[COMPONENT] Action dispatched");
+    }
+
+    private void DecrementCounter()
+    {
+        System.Diagnostics.Debug.WriteLine($"[COMPONENT] DecrementCounter button clicked at {DateTime.Now}");
+        Dispatcher.Dispatch(new DecrementCounterAction());
+        System.Diagnostics.Debug.WriteLine($"[COMPONENT] Action dispatched");
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        System.Diagnostics.Debug.WriteLine($"[COMPONENT] Counter initialized. Current count: {CounterState.Value.Count}");
+    }
+}
