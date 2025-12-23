@@ -6,7 +6,7 @@ namespace SolaceOboManager.Tests
     public class ObservableChannelTests
     {
         [Fact]
-        public async Task PublishAsync_ShouldEnqueuMessage()
+        public async Task PublishAsync_ShouldEnqueueMessage()
         {
             //Arrange
             var channel = new ObservableChannel<string>("test-channel");
