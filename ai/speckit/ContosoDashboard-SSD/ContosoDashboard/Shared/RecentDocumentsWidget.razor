@@ -1,0 +1,102 @@
+@using ContosoDashboard.Models
+@using ContosoDashboard.Services
+@inject IDocumentService DocumentService
+
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-file-earmark-text"></i> Recent Documents</h6>
+        <a href="/documents" class="btn btn-sm btn-light">View All</a>
+    </div>
+    <div class="card-body">
+        @if (loading)
+        {
+            <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (documents == null || !documents.Any())
+        {
+            <p class="text-muted text-center mb-0">No recent documents</p>
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var doc in documents)
+                {
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <i class="bi bi-file-earmark"></i>
+                                    @doc.Title
+                                </h6>
+                                <small class="text-muted">
+                                    @doc.Category • 
+                                    @FormatFileSize(doc.FileSize) • 
+                                    @doc.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                            <a href="/api/documents/@doc.DocumentId/download" 
+                               class="btn btn-sm btn-outline-primary" 
+                               target="_blank"
+                               title="Download">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int UserId { get; set; }
+    
+    [Parameter]
+    public int Count { get; set; } = 5;
+    
+    private List<Document>? documents;
+    private bool loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserId > 0)
+        {
+            await LoadDocuments();
+        }
+    }
+
+    private async Task LoadDocuments()
+    {
+        try
+        {
+            loading = true;
+            documents = await DocumentService.GetRecentDocumentsAsync(UserId, Count);
+        }
+        catch (Exception)
+        {
+            documents = new List<Document>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+    
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
