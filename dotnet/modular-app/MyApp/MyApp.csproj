@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-MyApp-b7236239-f062-43d8-b6ed-c4b9a526fa74</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\MyApp.Modules.Billing\MyApp.Modules.Billing.csproj" />
+    <ProjectReference Include="..\src\MyApp.Modules.Customers\MyApp.Modules.Customers.csproj" />
+    <ProjectReference Include="..\src\MyApp.Modules.Orders\MyApp.Modules.Orders.csproj" />
+  </ItemGroup>
+</Project>
