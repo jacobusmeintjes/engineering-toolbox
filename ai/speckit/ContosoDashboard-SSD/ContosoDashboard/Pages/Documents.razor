@@ -1,0 +1,1036 @@
+@page "/documents"
+@using ContosoDashboard.Models
+@using ContosoDashboard.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IDocumentService DocumentService
+@inject IProjectService ProjectService
+@inject IUserService UserService
+@inject INotificationService NotificationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Policy = "Employee")]
+
+<PageTitle>Documents - ContosoDashboard</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-file-earmark-text"></i> Documents</h2>
+            <p class="text-muted">Upload, manage, and organize your work documents</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="ShowUploadDialog">
+                <i class="bi bi-upload"></i> Upload Document
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "my" ? "active" : "")" 
+                    type="button" 
+                    @onclick='() => SwitchTab("my")'>
+                <i class="bi bi-file-earmark-person"></i> My Documents
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "shared" ? "active" : "")" 
+                    type="button" 
+                    @onclick='() => SwitchTab("shared")'>
+                <i class="bi bi-share"></i> Shared with Me
+            </button>
+        </li>
+    </ul>
+
+    @if (activeTab == "my")
+    {
+        <!-- Search and Filter Section -->
+        <div class="card mb-3">
+            <div class="card-body">
+            <div class="row g-3">
+                <!-- Search -->
+                <div class="col-md-4">
+                    <label class="form-label"><i class="bi bi-search"></i> Search</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search by title, description, or tags" 
+                               @bind="searchTerm" @bind:event="oninput" />
+                        <button class="btn btn-outline-secondary" @onclick="HandleSearch">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-tag"></i> Category</label>
+                    <select class="form-select" @bind="filterCategory" @bind:after="ApplyFilters">
+                        <option value="">All Categories</option>
+                        <option value="Specification">Specification</option>
+                        <option value="Design">Design</option>
+                        <option value="Report">Report</option>
+                        <option value="Presentation">Presentation</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Invoice">Invoice</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Project Filter -->
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-folder"></i> Project</label>
+                    <select class="form-select" @bind="filterProjectId" @bind:after="ApplyFilters">
+                        <option value="">All Projects</option>
+                        @if (projects != null)
+                        {
+                            @foreach (var project in projects)
+                            {
+                                <option value="@project.ProjectId">@project.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Date From -->
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-calendar"></i> From Date</label>
+                    <input type="date" class="form-control" @bind="filterFromDate" @bind:after="ApplyFilters" />
+                </div>
+
+                <!-- Date To -->
+                <div class="col-md-2">
+                    <label class="form-label"><i class="bi bi-calendar-check"></i> To Date</label>
+                    <input type="date" class="form-control" @bind="filterToDate" @bind:after="ApplyFilters" />
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col">
+                    @if (HasActiveFilters())
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClearFilters">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (showUpload)
+    {
+        <DocumentUpload OnUploadComplete="HandleUploadComplete" OnCancel="HideUploadDialog" />
+    }
+
+    @if (loading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading documents...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+    else if (documents == null || !documents.Any())
+    {
+        <div class="text-center my-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+            <h4 class="mt-3 text-muted">No documents yet</h4>
+            <p class="text-muted">Upload your first document to get started</p>
+            <button class="btn btn-primary" @onclick="ShowUploadDialog">
+                <i class="bi bi-upload"></i> Upload Document
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th @onclick='() => ToggleSort("title")' style="cursor: pointer;">
+                                    <i class="bi bi-file-earmark"></i> Title 
+                                    @GetSortIcon("title")
+                                </th>
+                                <th @onclick='() => ToggleSort("category")' style="cursor: pointer;">
+                                    <i class="bi bi-tag"></i> Category 
+                                    @GetSortIcon("category")
+                                </th>
+                                <th @onclick='() => ToggleSort("uploaddate")' style="cursor: pointer;">
+                                    <i class="bi bi-calendar"></i> Upload Date 
+                                    @GetSortIcon("uploaddate")
+                                </th>
+                                <th @onclick='() => ToggleSort("filesize")' style="cursor: pointer;">
+                                    <i class="bi bi-hdd"></i> Size 
+                                    @GetSortIcon("filesize")
+                                </th>
+                                <th><i class="bi bi-filetype-pdf"></i> Type</th>
+                                <th><i class="bi bi-folder"></i> Project</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in documents)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@doc.Title</strong>
+                                        @if (!string.IsNullOrEmpty(doc.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">@doc.Description</small>
+                                        }
+                                    </td>
+                                    <td><span class="badge bg-secondary">@doc.Category</span></td>
+                                    <td>@doc.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                                    <td>@FormatFileSize(doc.FileSize)</td>
+                                    <td>@GetFileExtension(doc.FileName)</td>
+                                    <td>@(doc.Project?.Name ?? "-")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="/api/documents/@doc.DocumentId/download" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Download"
+                                               target="_blank">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            @if (IsPreviewable(doc.FileType))
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" 
+                                                        title="Preview"
+                                                        @onclick="() => PreviewDocument(doc.DocumentId)">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            }
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    title="Share"
+                                                    @onclick="() => ShowShareModal(doc)">
+                                                <i class="bi bi-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    title="Edit"
+                                                    @onclick="async () => await ShowEditModal(doc)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    title="Delete"
+                                                    @onclick="() => ShowDeleteConfirmation(doc)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 text-muted">
+            <small>Total: @documents.Count document(s) • @FormatFileSize(documents.Sum(d => d.FileSize)) used</small>
+        </div>
+    }
+    }
+    else if (activeTab == "shared")
+    {
+        <!-- Shared Documents Tab -->
+        @if (loading)
+        {
+            <div class="text-center my-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading shared documents...</p>
+            </div>
+        }
+        else if (errorMessage != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+        else if (sharedDocuments == null || !sharedDocuments.Any())
+        {
+            <div class="text-center my-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">No shared documents</h4>
+                <p class="text-muted">Documents shared with you will appear here</p>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-file-earmark"></i> Title</th>
+                                    <th><i class="bi bi-tag"></i> Category</th>
+                                    <th><i class="bi bi-person"></i> Shared By</th>
+                                    <th><i class="bi bi-calendar"></i> Shared Date</th>
+                                    <th><i class="bi bi-hdd"></i> Size</th>
+                                    <th><i class="bi bi-filetype-pdf"></i> Type</th>
+                                    <th><i class="bi bi-shield-check"></i> Permission</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in sharedDocuments)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@doc.Title</strong>
+                                            @if (!string.IsNullOrEmpty(doc.Description))
+                                            {
+                                                <br />
+                                                <small class="text-muted">@doc.Description</small>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-secondary">@doc.Category</span></td>
+                                        <td>@(doc.UploadedBy?.DisplayName ?? "Unknown")</td>
+                                        <td>@doc.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                                        <td>@FormatFileSize(doc.FileSize)</td>
+                                        <td>@GetFileExtension(doc.FileName)</td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-eye"></i> View Only
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="/api/documents/@doc.DocumentId/download" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="Download"
+                                                   target="_blank">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                                @if (IsPreviewable(doc.FileType))
+                                                {
+                                                    <button class="btn btn-sm btn-outline-secondary" 
+                                                            title="Preview"
+                                                            @onclick="() => PreviewDocument(doc.DocumentId)">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3 text-muted">
+                <small>Total: @sharedDocuments.Count shared document(s)</small>
+            </div>
+        }
+    }
+
+    <!-- Edit Document Modal -->
+    @if (showEditModal && editingDocument != null)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Document</h5>
+                        <button type="button" class="btn-close" @onclick="HideEditModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Title *</label>
+                            <input type="text" class="form-control" @bind="editTitle" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3" @bind="editDescription"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category *</label>
+                            <select class="form-select" @bind="editCategory">
+                                <option value="Specification">Specification</option>
+                                <option value="Design">Design</option>
+                                <option value="Report">Report</option>
+                                <option value="Presentation">Presentation</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Invoice">Invoice</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tags</label>
+                            <input type="text" class="form-control" @bind="editTags" 
+                                   placeholder="Comma-separated tags" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Project</label>
+                            <select class="form-select" @bind="editProjectId">
+                                <option value="">-- No Project --</option>
+                                @if (projects != null)
+                                {
+                                    @foreach (var project in projects)
+                                    {
+                                        <option value="@project.ProjectId">@project.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <!-- Share Recipients Section -->
+                        @if (editingDocumentShares != null && editingDocumentShares.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label"><i class="bi bi-people"></i> Shared With</label>
+                                <ul class="list-group">
+                                    @foreach (var share in editingDocumentShares)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@(share.SharedWithUser?.DisplayName ?? "Unknown")</strong>
+                                                <br />
+                                                <small class="text-muted">
+                                                    Shared on @share.SharedDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                                    @if (share.CanEdit)
+                                                    {
+                                                        <span class="badge bg-warning ms-1">Can Edit</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-info ms-1">View Only</span>
+                                                    }
+                                                </small>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(editErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> @editErrorMessage
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideEditModal">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="SaveDocumentMetadata" disabled="@savingMetadata">
+                            @if (savingMetadata)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Delete Confirmation Modal -->
+    @if (showDeleteModal && deletingDocument != null)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="HideDeleteModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this document?</p>
+                        <div class="alert alert-warning">
+                            <strong>@deletingDocument.Title</strong><br />
+                            <small class="text-muted">This action cannot be undone.</small>
+                        </div>
+                        @if (!string.IsNullOrEmpty(deleteErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> @deleteErrorMessage
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideDeleteModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@deleting">
+                            @if (deleting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Delete Document
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Preview Modal -->
+    @if (showPreviewModal && previewDocumentId.HasValue)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Document Preview</h5>
+                        <button type="button" class="btn-close" @onclick="HidePreviewModal"></button>
+                    </div>
+                    <div class="modal-body" style="min-height: 500px;">
+                        <iframe src="/api/documents/@previewDocumentId/preview" 
+                                style="width: 100%; height: 600px; border: none;">
+                        </iframe>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HidePreviewModal">Close</button>
+                        <a href="/api/documents/@previewDocumentId/download" 
+                           class="btn btn-primary" 
+                           target="_blank">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    
+    <!-- Share Document Modal -->
+    @if (showShareModal && sharingDocument != null)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Share Document: @sharingDocument.Title</h5>
+                        <button type="button" class="btn-close" @onclick="HideShareModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(shareErrorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @shareErrorMessage
+                            </div>
+                        }
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Share with User</label>
+                            <select class="form-select" @bind="shareWithUserId">
+                                <option value="">-- Select a user --</option>
+                                @if (allUsers != null)
+                                {
+                                    @foreach (var user in allUsers.Where(u => u.UserId != currentUserId))
+                                    {
+                                        <option value="@user.UserId">@user.DisplayName (@user.Email)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" @bind="shareCanEdit" id="shareCanEdit">
+                            <label class="form-check-label" for="shareCanEdit">
+                                Allow editing
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideShareModal">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="ConfirmShare" disabled="@sharing">
+                            @if (sharing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            <i class="bi bi-share"></i> Share Document
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Document>? documents;
+    private List<Document>? sharedDocuments;
+    private List<Project>? projects;
+    private bool loading = true;
+    private string? errorMessage;
+    private bool showUpload = false;
+    private int currentUserId;
+    private string activeTab = "my";
+    
+    // Search and filter state
+    private string searchTerm = string.Empty;
+    private string filterCategory = string.Empty;
+    private string filterProjectId = string.Empty;
+    private DateTime? filterFromDate;
+    private DateTime? filterToDate;
+    
+    // Sort state
+    private string sortBy = "uploaddate";
+    private bool sortDescending = true;
+    
+    // Edit modal state
+    private bool showEditModal = false;
+    private Document? editingDocument;
+    private List<DocumentShare>? editingDocumentShares;
+    private string editTitle = string.Empty;
+    private string? editDescription;
+    private string editCategory = string.Empty;
+    private string? editTags;
+    private string editProjectId = string.Empty;
+    private bool savingMetadata = false;
+    private string? editErrorMessage;
+    
+    // Delete modal state
+    private bool showDeleteModal = false;
+    private Document? deletingDocument;
+    private bool deleting = false;
+    private string? deleteErrorMessage;
+    
+    // Preview modal state
+    private bool showPreviewModal = false;
+    private int? previewDocumentId;
+    
+    // Share modal state
+    private bool showShareModal = false;
+    private Document? sharingDocument;
+    private string shareWithUserId = string.Empty;
+    private bool shareCanEdit = false;
+    private bool sharing = false;
+    private string? shareErrorMessage;
+    private List<User>? allUsers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdClaim, out var userId))
+                {
+                    currentUserId = userId;
+                    
+                    // Load projects for filter dropdown
+                    projects = await ProjectService.GetUserProjectsAsync(userId);
+                    
+                    // Load users for sharing
+                    allUsers = await UserService.GetAllUsersAsync();
+                    
+                    await LoadDocuments();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading documents: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        loading = true;
+        errorMessage = null;
+        
+        try
+        {
+            if (tab == "shared")
+            {
+                await LoadSharedDocuments();
+            }
+            else
+            {
+                await LoadDocuments();
+            }
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task LoadDocuments()
+    {
+        try
+        {
+            loading = true;
+            errorMessage = null;
+            
+            // Check if we're in search mode
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                documents = await DocumentService.SearchDocumentsAsync(searchTerm, currentUserId);
+            }
+            else
+            {
+                // Apply filters
+                documents = await DocumentService.GetDocumentsFilteredAsync(
+                    currentUserId,
+                    string.IsNullOrEmpty(filterCategory) ? null : filterCategory,
+                    string.IsNullOrEmpty(filterProjectId) ? null : int.Parse(filterProjectId),
+                    filterFromDate,
+                    filterToDate
+                );
+            }
+            
+            // Apply sorting in-memory
+            documents = sortBy.ToLower() switch
+            {
+                "title" => sortDescending 
+                    ? documents.OrderByDescending(d => d.Title).ToList()
+                    : documents.OrderBy(d => d.Title).ToList(),
+                "category" => sortDescending
+                    ? documents.OrderByDescending(d => d.Category).ToList()
+                    : documents.OrderBy(d => d.Category).ToList(),
+                "uploaddate" => sortDescending
+                    ? documents.OrderByDescending(d => d.UploadDate).ToList()
+                    : documents.OrderBy(d => d.UploadDate).ToList(),
+                "filesize" => sortDescending
+                    ? documents.OrderByDescending(d => d.FileSize).ToList()
+                    : documents.OrderBy(d => d.FileSize).ToList(),
+                _ => documents
+            };
+            
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading documents: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+    
+    private async Task LoadSharedDocuments()
+    {
+        try
+        {
+            loading = true;
+            errorMessage = null;
+            
+            sharedDocuments = await DocumentService.GetSharedWithMeAsync(currentUserId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading shared documents: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        await LoadDocuments();
+    }
+
+    private async Task ApplyFilters()
+    {
+        // Clear search when applying filters
+        searchTerm = string.Empty;
+        await LoadDocuments();
+    }
+
+    private async Task ClearFilters()
+    {
+        searchTerm = string.Empty;
+        filterCategory = string.Empty;
+        filterProjectId = string.Empty;
+        filterFromDate = null;
+        filterToDate = null;
+        await LoadDocuments();
+    }
+
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrEmpty(searchTerm) ||
+               !string.IsNullOrEmpty(filterCategory) ||
+               !string.IsNullOrEmpty(filterProjectId) ||
+               filterFromDate.HasValue ||
+               filterToDate.HasValue;
+    }
+
+    private async Task ToggleSort(string column)
+    {
+        if (sortBy == column)
+        {
+            sortDescending = !sortDescending;
+        }
+        else
+        {
+            sortBy = column;
+            sortDescending = false;
+        }
+        await LoadDocuments();
+    }
+
+    private MarkupString GetSortIcon(string column)
+    {
+        if (sortBy != column)
+        {
+            return new MarkupString("<i class='bi bi-chevron-expand text-muted'></i>");
+        }
+        
+        return sortDescending 
+            ? new MarkupString("<i class='bi bi-chevron-down'></i>")
+            : new MarkupString("<i class='bi bi-chevron-up'></i>");
+    }
+
+    private void ShowUploadDialog()
+    {
+        showUpload = true;
+    }
+
+    private void HideUploadDialog()
+    {
+        showUpload = false;
+    }
+
+    private async Task HandleUploadComplete()
+    {
+        showUpload = false;
+        await LoadDocuments();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private string GetFileExtension(string fileName)
+    {
+        var ext = Path.GetExtension(fileName).ToUpper();
+        return string.IsNullOrEmpty(ext) ? "-" : ext.TrimStart('.');
+    }
+    
+    private bool IsPreviewable(string contentType)
+    {
+        var previewableTypes = new[] 
+        { 
+            "application/pdf", 
+            "image/jpeg", 
+            "image/png", 
+            "image/gif",
+            "text/plain"
+        };
+        return previewableTypes.Contains(contentType.ToLower());
+    }
+    
+    private void PreviewDocument(int documentId)
+    {
+        previewDocumentId = documentId;
+        showPreviewModal = true;
+    }
+    
+    private void HidePreviewModal()
+    {
+        showPreviewModal = false;
+        previewDocumentId = null;
+    }
+    
+    private async Task ShowEditModal(Document document)
+    {
+        editingDocument = document;
+        editTitle = document.Title;
+        editDescription = document.Description;
+        editCategory = document.Category;
+        editTags = document.Tags;
+        editProjectId = document.ProjectId?.ToString() ?? string.Empty;
+        editErrorMessage = null;
+        
+        // Load document shares
+        try
+        {
+            editingDocumentShares = await DocumentService.GetDocumentSharesAsync(document.DocumentId, currentUserId);
+        }
+        catch
+        {
+            editingDocumentShares = null;
+        }
+        
+        showEditModal = true;
+    }
+    
+    private void HideEditModal()
+    {
+        showEditModal = false;
+        editingDocument = null;
+        editingDocumentShares = null;
+        editErrorMessage = null;
+    }
+    
+    private async Task SaveDocumentMetadata()
+    {
+        if (editingDocument == null) return;
+        
+        try
+        {
+            savingMetadata = true;
+            editErrorMessage = null;
+            
+            await DocumentService.UpdateDocumentAsync(
+                editingDocument.DocumentId,
+                currentUserId,
+                editTitle,
+                editDescription,
+                editCategory,
+                editTags,
+                string.IsNullOrEmpty(editProjectId) ? null : int.Parse(editProjectId)
+            );
+            
+            HideEditModal();
+            await LoadDocuments();
+        }
+        catch (Exception ex)
+        {
+            editErrorMessage = $"Error updating document: {ex.Message}";
+        }
+        finally
+        {
+            savingMetadata = false;
+        }
+    }
+    
+    private void ShowDeleteConfirmation(Document document)
+    {
+        deletingDocument = document;
+        deleteErrorMessage = null;
+        showDeleteModal = true;
+    }
+    
+    private void HideDeleteModal()
+    {
+        showDeleteModal = false;
+        deletingDocument = null;
+        deleteErrorMessage = null;
+    }
+    
+    private async Task ConfirmDelete()
+    {
+        if (deletingDocument == null) return;
+        
+        try
+        {
+            deleting = true;
+            deleteErrorMessage = null;
+            
+            await DocumentService.DeleteDocumentAsync(deletingDocument.DocumentId, currentUserId);
+            
+            HideDeleteModal();
+            await LoadDocuments();
+        }
+        catch (Exception ex)
+        {
+            deleteErrorMessage = $"Error deleting document: {ex.Message}";
+        }
+        finally
+        {
+            deleting = false;
+        }
+    }
+    
+    private void ShowShareModal(Document document)
+    {
+        sharingDocument = document;
+        shareWithUserId = string.Empty;
+        shareCanEdit = false;
+        shareErrorMessage = null;
+        showShareModal = true;
+    }
+    
+    private void HideShareModal()
+    {
+        showShareModal = false;
+        sharingDocument = null;
+        shareWithUserId = string.Empty;
+        shareCanEdit = false;
+        shareErrorMessage = null;
+    }
+    
+    private async Task ConfirmShare()
+    {
+        if (sharingDocument == null || string.IsNullOrEmpty(shareWithUserId))
+        {
+            shareErrorMessage = "Please select a user to share with.";
+            return;
+        }
+        
+        if (!int.TryParse(shareWithUserId, out var userId))
+        {
+            shareErrorMessage = "Invalid user selection.";
+            return;
+        }
+        
+        try
+        {
+            sharing = true;
+            shareErrorMessage = null;
+            
+            await DocumentService.ShareDocumentAsync(
+                sharingDocument.DocumentId, 
+                currentUserId, 
+                userId, 
+                shareCanEdit);
+            
+            // Send notification
+            var sharedWithUser = allUsers?.FirstOrDefault(u => u.UserId == userId);
+            if (sharedWithUser != null)
+            {
+                var notification = new Notification
+                {
+                    UserId = userId,
+                    Message = $"Document shared: {sharingDocument.Title}",
+                    Type = NotificationType.SystemAnnouncement,
+                    Priority = NotificationPriority.Informational,
+                    CreatedDate = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await NotificationService.CreateNotificationAsync(notification);
+            }
+            
+            HideShareModal();
+        }
+        catch (Exception ex)
+        {
+            shareErrorMessage = $"Error sharing document: {ex.Message}";
+        }
+        finally
+        {
+            sharing = false;
+        }
+    }
+}

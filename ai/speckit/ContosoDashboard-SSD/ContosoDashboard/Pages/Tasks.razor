@@ -5,6 +5,8 @@
 @using System.Security.Claims
 @attribute [Authorize]
 @inject ITaskService TaskService
+@inject IDocumentService DocumentService
+@inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>My Tasks - ContosoDashboard</PageTitle>
@@ -135,11 +137,174 @@
     }
 </div>
 
+<!-- Task Details Modal with Documents -->
+@if (showTaskDetails && selectedTask != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@selectedTask.Title</h5>
+                    <button type="button" class="btn-close" @onclick="HideTaskDetails"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(selectedTask.Description))
+                    {
+                        <div class="mb-3">
+                            <label class="fw-bold">Description:</label>
+                            <p>@selectedTask.Description</p>
+                        </div>
+                    }
+                    
+                    <!-- Attached Documents Section -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold"><i class="bi bi-paperclip"></i> Attached Documents</label>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" @onclick="ShowAttachDocumentModal">
+                                    <i class="bi bi-paperclip"></i> Attach Existing
+                                </button>
+                                <button class="btn btn-outline-success" @onclick="ShowUploadForTaskModal">
+                                    <i class="bi bi-upload"></i> Upload New
+                                </button>
+                            </div>
+                        </div>
+                        
+                        @if (loadingDocuments)
+                        {
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                            </div>
+                        }
+                        else if (taskDocuments == null || !taskDocuments.Any())
+                        {
+                            <p class="text-muted fst-italic">No documents attached to this task</p>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var doc in taskDocuments)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-file-earmark"></i>
+                                            <strong>@doc.Title</strong>
+                                            <br />
+                                            <small class="text-muted">
+                                                @doc.FileName • @FormatFileSize(doc.FileSize) • 
+                                                Uploaded @doc.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+                                        <a href="/api/documents/@doc.DocumentId/download" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           target="_blank">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideTaskDetails">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Attach Document Modal -->
+@if (showAttachModal && selectedTask != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Attach Document to Task</h5>
+                    <button type="button" class="btn-close" @onclick="HideAttachModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(attachErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @attachErrorMessage
+                        </div>
+                    }
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select Document</label>
+                        <select class="form-select" @bind="selectedDocumentId" size="10">
+                            @if (availableDocuments != null)
+                            {
+                                @foreach (var doc in availableDocuments)
+                                {
+                                    <option value="@doc.DocumentId">
+                                        @doc.Title (@doc.FileName)
+                                    </option>
+                                }
+                            }
+                        </select>
+                        @if (availableDocuments == null || !availableDocuments.Any())
+                        {
+                            <small class="text-muted">No documents available to attach</small>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideAttachModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ConfirmAttachDocument" disabled="@attaching">
+                        @if (attaching)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        <i class="bi bi-paperclip"></i> Attach Document
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Upload Document for Task Modal -->
+@if (showUploadForTaskModal && selectedTask != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Document for Task</h5>
+                    <button type="button" class="btn-close" @onclick="HideUploadForTaskModal"></button>
+                </div>
+                <div class="modal-body">
+                    <DocumentUpload OnUploadComplete="HandleUploadForTaskComplete" OnCancel="HideUploadForTaskModal" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<TaskItem>? tasks;
     private string filterStatus = "";
     private string filterPriority = "";
     private int currentUserId = 0;
+    
+    // Task details modal state
+    private bool showTaskDetails = false;
+    private TaskItem? selectedTask;
+    private List<Document>? taskDocuments;
+    private bool loadingDocuments = false;
+    
+    // Attach document modal state
+    private bool showAttachModal = false;
+    private List<Document>? availableDocuments;
+    private int selectedDocumentId = 0;
+    private bool attaching = false;
+    private string? attachErrorMessage;
+    
+    // Upload for task modal state
+    private bool showUploadForTaskModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -185,9 +350,122 @@
         // TODO: Implement modal dialog for creating tasks
     }
 
-    private void ViewTaskDetails(int taskId)
+    private async Task ViewTaskDetails(int taskId)
     {
-        // TODO: Navigate to task details or show modal
+        var task = tasks?.FirstOrDefault(t => t.TaskId == taskId);
+        if (task == null) return;
+        
+        selectedTask = task;
+        showTaskDetails = true;
+        
+        // Load task documents
+        await LoadTaskDocuments();
+    }
+    
+    private void HideTaskDetails()
+    {
+        showTaskDetails = false;
+        selectedTask = null;
+        taskDocuments = null;
+    }
+    
+    private async Task LoadTaskDocuments()
+    {
+        if (selectedTask == null) return;
+        
+        try
+        {
+            loadingDocuments = true;
+            taskDocuments = await DocumentService.GetTaskDocumentsAsync(selectedTask.TaskId, currentUserId);
+        }
+        catch (Exception)
+        {
+            taskDocuments = new List<Document>();
+        }
+        finally
+        {
+            loadingDocuments = false;
+        }
+    }
+    
+    private async Task ShowAttachDocumentModal()
+    {
+        try
+        {
+            // Load available documents
+            availableDocuments = await DocumentService.GetUserDocumentsAsync(currentUserId);
+            showAttachModal = true;
+            attachErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            attachErrorMessage = $"Error loading documents: {ex.Message}";
+        }
+    }
+    
+    private void HideAttachModal()
+    {
+        showAttachModal = false;
+        selectedDocumentId = 0;
+        attachErrorMessage = null;
+        availableDocuments = null;
+    }
+    
+    private async Task ConfirmAttachDocument()
+    {
+        if (selectedTask == null || selectedDocumentId == 0)
+        {
+            attachErrorMessage = "Please select a document to attach.";
+            return;
+        }
+        
+        try
+        {
+            attaching = true;
+            attachErrorMessage = null;
+            
+            await DocumentService.AttachDocumentToTaskAsync(selectedDocumentId, selectedTask.TaskId, currentUserId);
+            
+            HideAttachModal();
+            await LoadTaskDocuments();
+        }
+        catch (Exception ex)
+        {
+            attachErrorMessage = $"Error attaching document: {ex.Message}";
+        }
+        finally
+        {
+            attaching = false;
+        }
+    }
+    
+    private void ShowUploadForTaskModal()
+    {
+        showUploadForTaskModal = true;
+    }
+    
+    private void HideUploadForTaskModal()
+    {
+        showUploadForTaskModal = false;
+    }
+    
+    private async Task HandleUploadForTaskComplete()
+    {
+        HideUploadForTaskModal();
+        await LoadTaskDocuments();
+    }
+    
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
     }
 
     private string GetPriorityColor(TaskPriority priority)

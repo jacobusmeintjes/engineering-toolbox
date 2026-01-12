@@ -1,0 +1,299 @@
+@using ContosoDashboard.Models
+@using ContosoDashboard.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@inject IDocumentService DocumentService
+@inject IProjectService ProjectService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-upload"></i> Upload Document</h5>
+    </div>
+    <div class="card-body">
+        <EditForm Model="@uploadModel" OnValidSubmit="HandleUpload">
+            <DataAnnotationsValidator />
+            
+            <div class="mb-3">
+                <label class="form-label">File *</label>
+                <InputFile OnChange="HandleFileSelected" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.zip,.rar" />
+                @if (!string.IsNullOrEmpty(fileValidationError))
+                {
+                    <div class="text-danger mt-1">
+                        <small><i class="bi bi-exclamation-circle"></i> @fileValidationError</small>
+                    </div>
+                }
+                @if (selectedFile != null)
+                {
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-file-earmark"></i> @selectedFile.Name (@FormatFileSize(selectedFile.Size))
+                        </small>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Title *</label>
+                <InputText @bind-Value="uploadModel.Title" class="form-control" placeholder="Enter document title" />
+                <ValidationMessage For="@(() => uploadModel.Title)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <InputTextArea @bind-Value="uploadModel.Description" class="form-control" rows="3" placeholder="Brief description (optional)" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Category *</label>
+                    <InputSelect @bind-Value="uploadModel.Category" class="form-select">
+                        <option value="">-- Select Category --</option>
+                        <option value="Specification">Specification</option>
+                        <option value="Design">Design</option>
+                        <option value="Report">Report</option>
+                        <option value="Presentation">Presentation</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Invoice">Invoice</option>
+                        <option value="Other">Other</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => uploadModel.Category)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Project</label>
+                    <InputSelect @bind-Value="uploadModel.ProjectId" class="form-select">
+                        <option value="">-- No Project --</option>
+                        @if (projects != null)
+                        {
+                            @foreach (var project in projects)
+                            {
+                                <option value="@project.ProjectId">@project.Name</option>
+                            }
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Tags</label>
+                <InputText @bind-Value="uploadModel.Tags" class="form-control" placeholder="Comma-separated tags (e.g., urgent, q1-2026)" />
+                <small class="text-muted">Optional: Add tags to help organize and search documents</small>
+            </div>
+
+            @if (uploading)
+            {
+                <div class="mb-3">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: @uploadProgress%" 
+                             aria-valuenow="@uploadProgress" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            @uploadProgress%
+                        </div>
+                    </div>
+                    <small class="text-muted mt-1">Uploading document...</small>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill"></i> @successMessage
+                </div>
+            }
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@uploading">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" disabled="@(uploading || selectedFile == null)">
+                    <i class="bi bi-upload"></i> Upload Document
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnUploadComplete { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private UploadModel uploadModel = new();
+    private IBrowserFile? selectedFile;
+    private List<Project>? projects;
+    private bool uploading = false;
+    private int uploadProgress = 0;
+    private string? errorMessage;
+    private string? successMessage;
+    private string? fileValidationError;
+    private int currentUserId;
+
+    // File validation constants
+    private const long MaxFileSize = 26214400; // 25 MB
+    private static readonly string[] AllowedExtensions = 
+    {
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".txt", ".csv", ".jpg", ".jpeg", ".png", ".gif", ".zip", ".rar"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdClaim, out var userId))
+                {
+                    currentUserId = userId;
+                    
+                    // Load user's projects for the dropdown
+                    projects = await ProjectService.GetUserProjectsAsync(userId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading projects: {ex.Message}";
+        }
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        fileValidationError = null;
+        selectedFile = e.File;
+
+        // Client-side validation
+        if (selectedFile.Size > MaxFileSize)
+        {
+            fileValidationError = $"File size ({FormatFileSize(selectedFile.Size)}) exceeds maximum allowed size (25 MB)";
+            selectedFile = null;
+            return;
+        }
+
+        var extension = Path.GetExtension(selectedFile.Name).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            fileValidationError = $"File type '{extension}' is not allowed. Allowed types: {string.Join(", ", AllowedExtensions)}";
+            selectedFile = null;
+            return;
+        }
+    }
+
+    private async Task HandleUpload()
+    {
+        if (selectedFile == null)
+        {
+            errorMessage = "Please select a file to upload";
+            return;
+        }
+
+        try
+        {
+            uploading = true;
+            uploadProgress = 0;
+            errorMessage = null;
+            successMessage = null;
+
+            // Simulate progress (in real scenario, track actual upload progress)
+            uploadProgress = 25;
+            StateHasChanged();
+
+            // Read file into memory stream
+            using var stream = selectedFile.OpenReadStream(MaxFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            uploadProgress = 50;
+            StateHasChanged();
+
+            // Upload document
+            var document = await DocumentService.UploadAsync(
+                memoryStream,
+                selectedFile.Name,
+                selectedFile.ContentType,
+                uploadModel.Title,
+                uploadModel.Description,
+                uploadModel.Category,
+                uploadModel.Tags,
+                string.IsNullOrEmpty(uploadModel.ProjectId) ? null : int.Parse(uploadModel.ProjectId),
+                currentUserId
+            );
+
+            uploadProgress = 100;
+            StateHasChanged();
+
+            successMessage = $"Document '{uploadModel.Title}' uploaded successfully!";
+            
+            // Wait briefly to show success message
+            await Task.Delay(1000);
+
+            // Notify parent component
+            await OnUploadComplete.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Upload failed: {ex.Message}";
+            uploadProgress = 0;
+        }
+        finally
+        {
+            uploading = false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private class UploadModel
+    {
+        [Required(ErrorMessage = "Title is required")]
+        [StringLength(255, ErrorMessage = "Title cannot exceed 255 characters")]
+        public string Title { get; set; } = string.Empty;
+
+        [StringLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+        public string? Description { get; set; }
+
+        [Required(ErrorMessage = "Category is required")]
+        public string Category { get; set; } = string.Empty;
+
+        public string? ProjectId { get; set; }
+
+        [StringLength(500, ErrorMessage = "Tags cannot exceed 500 characters")]
+        public string? Tags { get; set; }
+    }
+}

@@ -5,6 +5,7 @@
 @using System.Security.Claims
 @attribute [Authorize]
 @inject IProjectService ProjectService
+@inject IDocumentService DocumentService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -198,6 +199,66 @@
                     </div>
                 </div>
 
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Project Documents</h5>
+                        <a href="/documents" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-file-earmark-text"></i> View All Documents
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if (projectDocuments == null)
+                        {
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        }
+                        else if (!projectDocuments.Any())
+                        {
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-inbox"></i> No documents attached to this project yet.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var doc in projectDocuments.Take(5))
+                                {
+                                    <div class="list-group-item px-0">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <i class="bi bi-file-earmark-text text-primary"></i>
+                                                    @doc.Title
+                                                </h6>
+                                                <small class="text-muted">
+                                                    <span class="badge bg-secondary me-1">@doc.Category</span>
+                                                    Uploaded by @doc.UploadedBy.DisplayName on @doc.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                                </small>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-primary" title="Download">
+                                                    <i class="bi bi-download"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @if (projectDocuments.Count > 5)
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        Showing 5 of @projectDocuments.Count documents
+                                    </small>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">Statistics</h5>
@@ -237,6 +298,7 @@
     public int ProjectId { get; set; }
 
     private Project? project;
+    private List<Document>? projectDocuments;
     private int currentUserId = 0;
 
     protected override async Task OnInitializedAsync()
@@ -253,6 +315,17 @@
         if (currentUserId > 0)
         {
             project = await ProjectService.GetProjectByIdAsync(ProjectId, currentUserId);
+            
+            // Load project documents
+            try
+            {
+                projectDocuments = await DocumentService.GetDocumentsByProjectAsync(ProjectId, currentUserId);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // User doesn't have access to project documents
+                projectDocuments = new List<Document>();
+            }
         }
         
         if (project == null)
