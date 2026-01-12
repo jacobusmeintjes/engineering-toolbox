@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Modules/">
+    <Project Path="../src/MyApp.Modules.Billing/MyApp.Modules.Billing.csproj" />
+    <Project Path="../src/MyApp.Modules.Customers/MyApp.Modules.Customers.csproj" />
+    <Project Path="../src/MyApp.Modules.Orders/MyApp.Modules.Orders.csproj" />
+  </Folder>
+  <Project Path="../tests/MyApp.ArchitectureTests/MyApp.ArchitectureTests.csproj" />
+  <Project Path="MyApp.csproj" />
+</Solution>
