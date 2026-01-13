@@ -286,21 +286,21 @@ docs/                         # Documentation
 
 ### Help System & Error Handling
 
-- [ ] T116 [P] Add comprehensive --help text for all commands in Program.cs
+- [X] T116 [P] Add comprehensive --help text for all commands in Program.cs
 - [ ] T117 [P] Implement command suggestion for typos ("Did you mean...?") in Program.cs
 - [ ] T118 [P] Add global exception handler with user-friendly messages in Program.cs
-- [ ] T119 [P] Ensure all error messages follow consistent format in all Command classes
+- [X] T119 [P] Ensure all error messages follow consistent format in all Command classes
 
 ### Performance Optimization
 
 - [ ] T120 [P] Verify startup time < 100ms with performance profiling
 - [ ] T121 [P] Verify add command < 50ms with performance profiling
 - [ ] T122 [P] Verify list 100 tasks < 200ms with performance profiling
-- [ ] T123 [P] Optimize JSON serialization with source generators (verify T025 implementation)
+- [X] T123 [P] Optimize JSON serialization with source generators (verify T025 implementation)
 
 ### Documentation
 
-- [ ] T124 [P] Update README.md with all commands and examples in docs/README.md
+- [X] T124 [P] Update README.md with all commands and examples in docs/README.md
 - [ ] T125 [P] Add CONTRIBUTING.md with development guide in docs/CONTRIBUTING.md
 - [ ] T126 [P] Create command reference documentation in docs/
 - [ ] T127 [P] Add architecture diagram to documentation in docs/
@@ -312,13 +312,13 @@ docs/                         # Documentation
 - [ ] T130 [P] Run static analysis (Roslyn analyzers) and fix all warnings
 - [ ] T131 [P] Run quickstart.md validation scenarios end-to-end
 - [ ] T132 [P] Test on Windows, macOS, and Linux platforms
-- [ ] T133 [P] Verify color support graceful degradation on legacy terminals
+- [X] T133 [P] Verify color support graceful degradation on legacy terminals
 
 ### Packaging & Distribution
 
 - [ ] T134 Publish release build for cross-platform deployment
 - [ ] T135 [P] Create installation guide for all platforms in docs/
-- [ ] T136 [P] Add version command (--version) in Program.cs
+- [X] T136 [P] Add version command (--version) in Program.cs
 - [ ] T137 [P] Add tab completion script generation for PowerShell/Bash in docs/
 
 ---
