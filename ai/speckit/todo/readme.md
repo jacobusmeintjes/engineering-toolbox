@@ -11,6 +11,7 @@ specify init --here --ai copilot --script ps
 ---
 
 ## 2. **Generate Constitution**
+**What it does:** Analyzes your project (or creates from scratch) to establish governing principles, technical standards, security requirements, and development constraints that all features must follow. Think of it as your project's "rulebook" that ensures consistency.
 ```
 /speckit.constitution
 ```
@@ -23,6 +24,7 @@ specify init --here --ai copilot --script ps
 ---
 
 ## 3. **Create Feature Specification**
+**What it does:** Transforms stakeholder requirements into a detailed specification document that defines WHAT to build (not HOW). Includes user scenarios, acceptance criteria, requirements, and success metrics from a business/user perspective.
 ```
 /speckit.specify --file StakeholderDocs/document-upload-and-management-feature.md
 ```
@@ -40,6 +42,7 @@ specify init --here --ai copilot --script ps
 ---
 
 ## 4. **Clarify Requirements**
+**What it does:** Analyzes your specification to identify ambiguities, gaps, and underspecified areas. Asks targeted questions to ensure all requirements are clear and complete before moving to technical planning. Prevents building the wrong thing.
 ```
 /speckit.clarify
 ```
@@ -52,6 +55,7 @@ specify init --here --ai copilot --script ps
 ---
 
 ## 5. **Generate Technical Plan**
+**What it does:** Creates a comprehensive technical implementation plan that defines HOW to build the feature. Includes architecture decisions, technology choices, data models, API designs, and implementation approach while respecting constitution constraints.
 ```
 /speckit.plan
 ```
@@ -68,6 +72,7 @@ specify init --here --ai copilot --script ps
 ---
 
 ## 6. **Generate Tasks**
+**What it does:** Breaks down the technical plan into specific, actionable implementation tasks. Each task is sized for completion in a few hours to a day, organized by phase/user story, with clear acceptance criteria. Creates your development roadmap.
 ```
 /speckit.tasks
 ```
@@ -82,19 +87,11 @@ specify init --here --ai copilot --script ps
 
 ---
 
-## 7. **Analyze Implementation Plan** ⭐ NEW
+## 7. **Analyze Implementation Plan** ⭐ 
+**What it does:** Audits your implementation plan against your specification and constitution to catch issues before coding. Identifies missing requirements, scope creep, conflicts with principles, missing tests, dependency problems, and unaddressed performance/security concerns. Your quality gate before implementation.
 ```
 /speckit.analyze
 ```
-**What it does:**
-Audits your implementation plan (`plan.md` and `tasks.md`) against your specification (`spec.md`) and constitution (`constitution.md`) to identify:
-- Missing requirements that aren't covered by tasks
-- Tasks that don't map to any requirement (scope creep)
-- Conflicts between tasks and constitution principles
-- Missing quality gates or testing tasks
-- Dependencies or ordering issues
-- Performance/security considerations not addressed
-
 **Files to review:**
 - `specs/analysis.md` or audit report in Chat view
   - ✅ Verify: All spec requirements have corresponding tasks
@@ -111,5 +108,59 @@ Audits your implementation plan (`plan.md` and `tasks.md`) against your specific
 ---
 
 ## 8. **Implement MVP**
+**What it does:** Executes the implementation plan by generating code for your specified task range. Works incrementally, task by task, following the order in tasks.md. Requests manual testing and assistance as needed. Implements the actual feature with AI-generated code that follows your spec, plan, and constitution.
 ```
 /speckit.implement Implement the MVP first strategy (Tasks: T001 - T045)
+```
+**Files to review (application code):**
+- `ContosoDashboard/Models/` - New entity classes (e.g., Document.cs)
+- `ContosoDashboard/Data/ApplicationDbContext.cs` - Updated with new DbSet
+- `ContosoDashboard/Services/` - New service classes (e.g., DocumentService.cs)
+- `ContosoDashboard/Pages/` - New pages (e.g., Documents.razor, MyDocuments.razor)
+- `ContosoDashboard/Shared/` - Updated navigation (NavMenu.razor)
+- Database migration files (if applicable)
+
+**Manual testing verification:**
+- ✅ Run application: `dotnet run` from ContosoDashboard directory
+- ✅ Navigate to http://localhost:5000
+- ✅ Login as test user (Ni Kang)
+- ✅ Test acceptance scenarios from `specs/spec.md` (User Story 1)
+- ✅ Verify upload functionality works
+- ✅ Verify documents appear in list
+- ✅ Report results back to GitHub Copilot
+
+---
+
+## Bonus Commands
+
+### **Validate Specification Completeness**
+**What it does:** Checks your specification against a comprehensive checklist to ensure all necessary sections are complete and nothing important is missing.
+```
+/speckit.checklist
+```
+
+### **Convert Tasks to GitHub Issues**
+**What it does:** Automatically creates GitHub issues from your tasks.md file, making it easy to track implementation progress in your repository's issue tracker.
+```
+/speckit.taskstoissues
+
+
+
+git add .
+git commit -m "Descriptive message"
+git push
+```
+**Verify on GitHub:** Check your repository to confirm files were pushed successfully
+
+---
+
+## Quick Reference: Command Flow
+```
+specify init          → Set up infrastructure
+/speckit.constitution → Define project rules
+/speckit.specify      → What to build (business view)
+/speckit.clarify      → Remove ambiguities
+/speckit.plan         → How to build (technical view)
+/speckit.tasks        → Break into actionable steps
+/speckit.analyze      → Quality gate - catch issues
+/speckit.implement    → Generate code
