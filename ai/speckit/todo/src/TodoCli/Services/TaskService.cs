@@ -98,10 +98,32 @@ public class TaskService : ITaskService
         DateOnly? newDueDate = null, Priority? newPriority = null, List<string>? addTags = null, List<string>? removeTags = null,
         bool clearDueDate = false)
     {
-        var task = await _repository.GetByIdAsync(idOrPartial);
+        var allTasks = await _repository.GetAllAsync();
+        var task = allTasks.FirstOrDefault(t =>
+            t.Id.ToString().StartsWith(idOrPartial, StringComparison.OrdinalIgnoreCase));
+
+        if (task == null)
+        {
+            // Try exact match
+            if (Guid.TryParse(idOrPartial, out var exactId))
+            {
+                task = allTasks.FirstOrDefault(t => t.Id == exactId);
+            }
+        }
 
         if (task == null)
             throw new InvalidOperationException($"Task not found with ID: {idOrPartial}");
+
+        // Check for ambiguous IDs
+        if (idOrPartial.Length < 36) // Not a full GUID
+        {
+            var matches = allTasks.Where(t =>
+                t.Id.ToString().StartsWith(idOrPartial, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matches.Count > 1)
+            {
+                throw new InvalidOperationException($"Ambiguous ID '{idOrPartial}' matches {matches.Count} tasks");
+            }
+        }
 
         // Update fields (partial update - only specified fields change)
         if (newTitle != null)
@@ -124,7 +146,6 @@ public class TaskService : ITaskService
         if (removeTags != null && removeTags.Count > 0)
             task.RemoveTags(removeTags.ToArray());
 
-        var allTasks = await _repository.GetAllAsync();
         await _repository.SaveAllAsync(allTasks);
 
         return task;

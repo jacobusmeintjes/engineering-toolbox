@@ -35,6 +35,8 @@ class Program
         rootCommand.AddCommand(new ListCommand(taskService, taskFilter, tableFormatter, consoleWriter));
         rootCommand.AddCommand(new CompleteCommand(taskService, consoleWriter));
         rootCommand.AddCommand(new ShowCommand(taskService, consoleWriter, colorProvider));
+        rootCommand.AddCommand(new UpdateCommand(taskService, consoleWriter, colorProvider));
+        rootCommand.AddCommand(new DeleteCommand(taskService, consoleWriter, colorProvider));
 
         // Execute
         return await rootCommand.InvokeAsync(args);
