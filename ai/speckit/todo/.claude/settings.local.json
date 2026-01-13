@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwsh -NoProfile -Command \".specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly\")",
+      "Bash(pwsh -NoProfile -Command \"Get-Content ''D:\\\\code\\\\_git\\\\engineering-toolbox\\\\specs\\\\001-todo-cli\\\\spec.md'' | Measure-Object -Line\")",
+      "Bash(pwsh -NoProfile -Command \"& ''.specify/scripts/powershell/setup-plan.ps1'' -Json\")",
+      "Bash(pwsh -NoProfile -Command \"& ''.specify/scripts/powershell/update-agent-context.ps1'' -AgentType claude\")",
+      "Bash(pwsh -NoProfile -Command \"& ''.specify/scripts/powershell/check-prerequisites.ps1'' -Json\")",
+      "Bash(pwsh -NoProfile -Command \"& ''.specify/scripts/powershell/check-prerequisites.ps1'' -Json -RequireTasks -IncludeTasks\")",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(dotnet new sln -n TodoCli)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)"
+    ]
+  }
+}

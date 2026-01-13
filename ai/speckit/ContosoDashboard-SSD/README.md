@@ -60,6 +60,7 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 - Team coordination
 - Notifications and announcements
 - User profile management
+- Document upload and management
 
 ## Features
 
@@ -74,9 +75,16 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 - **Team Directory**: Browse team members by department with status, roles, and contact information
 - **Notifications Center**: View and manage all notifications with read/unread status and priority badges
 - **User Profile**: Update personal information, availability status, and notification preferences
+- **Document Management**: Complete document lifecycle management with upload, browse, organize, download, share, and task integration
+  - **Upload & Store**: Upload documents (25 MB max) with validation, metadata, and project association
+  - **Browse & Organize**: Search, filter by category/project/date, sort by title/category/date/size
+  - **Download & Manage**: Download documents, edit metadata, delete with confirmation
+  - **Share with Team**: Share documents with team members, "Shared with Me" view, project member auto-access
+  - **Task Integration**: Attach documents to tasks, view task documents, upload directly from task page
+  - **Dashboard Widgets**: Recent documents widget, document count card, activity notifications
 - **Service-Level Security**: Authorization checks prevent IDOR vulnerabilities
-- **Data Models**: Complete entity framework models for Users, Tasks, Projects, Notifications, and Announcements
-- **Business Services**: Service layer for all core functionality (Tasks, Projects, Users, Notifications, Dashboard)
+- **Data Models**: Complete entity framework models for Users, Tasks, Projects, Notifications, Announcements, Documents, and DocumentShares
+- **Business Services**: Service layer for all core functionality (Tasks, Projects, Users, Notifications, Dashboard, Documents)
 - **Database Context**: EF Core DbContext with relationships, indexes, and seed data
 
 ### 🔧 Technical Stack
