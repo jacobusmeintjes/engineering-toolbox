@@ -72,12 +72,143 @@ todo delete a3f2
 
 ## Commands
 
-- `add` - Add new task
-- `list` - Display tasks with filtering and sorting
-- `complete` - Mark task as complete
-- `update` - Modify task properties
-- `show` - Display full task details
-- `delete` - Remove task permanently
+### add - Add New Task
+
+```bash
+# Minimal task (title only)
+todo add "Buy groceries"
+
+# With all metadata
+todo add "Deploy v2.0" \
+  --description "Deploy to production environment" \
+  --due 2026-01-20 \
+  --priority High \
+  --tags work,deployment,urgent
+
+# Options:
+#   -d, --description <text>     Task description (0-1000 chars)
+#   --due <yyyy-mm-dd>           Due date
+#   -p, --priority <High|Medium|Low>  Priority level (default: Medium)
+#   --tags <tag1,tag2>           Comma-separated tags
+```
+
+### list - Display Tasks
+
+```bash
+# List all incomplete tasks (default)
+todo list
+
+# Filter by status
+todo list --status all
+todo list --status complete
+todo list --status incomplete
+
+# Filter by priority
+todo list --priority High
+
+# Filter by tags (OR logic)
+todo list --tags work,urgent
+
+# Filter by due date
+todo list --due overdue
+todo list --due today
+todo list --due week
+todo list --due month
+
+# Sort results
+todo list --sort created   # Default
+todo list --sort due
+todo list --sort priority
+
+# Combine filters
+todo list --status incomplete --priority High --due week --sort due
+
+# Options:
+#   -s, --status <all|complete|incomplete>
+#   -p, --priority <High|Medium|Low>
+#   -t, --tags <tag1,tag2>
+#   -d, --due <overdue|today|week|month>
+#   --sort <created|due|priority>
+```
+
+### complete - Mark Task Complete
+
+```bash
+# Complete with partial ID (minimum 4 characters)
+todo complete a3f2
+
+# Complete with full ID
+todo complete a3f2b8c1-4d5e-6f7a-8b9c-0d1e2f3a4b5c
+
+# Shows completion duration
+# Example output: ✓ Task completed: Deploy v2.0 (took 2 days)
+```
+
+### update - Modify Task
+
+```bash
+# Update title
+todo update a3f2 --title "New title"
+
+# Update multiple fields
+todo update a3f2 --priority High --due 2026-01-25
+
+# Add tags
+todo update a3f2 --add-tags urgent,critical
+
+# Remove tags
+todo update a3f2 --remove-tags old-tag
+
+# Clear due date
+todo update a3f2 --due none
+
+# Options:
+#   -t, --title <text>           New title
+#   -d, --description <text>     New description
+#   -p, --priority <High|Medium|Low>  New priority
+#   --due <yyyy-mm-dd|none>      New due date or 'none' to clear
+#   --add-tags <tag1,tag2>       Tags to add
+#   --remove-tags <tag1,tag2>    Tags to remove
+```
+
+### show - Display Full Details
+
+```bash
+# Show all task fields
+todo show a3f2
+
+# Displays:
+#   - Title, description, status
+#   - Priority (color-coded)
+#   - Due date with countdown
+#   - Tags
+#   - Created timestamp with age
+#   - Completed timestamp (if applicable) with duration
+```
+
+### delete - Remove Task
+
+```bash
+# Delete with confirmation
+todo delete a3f2
+
+# Delete without confirmation
+todo delete a3f2 --force
+
+# Options:
+#   -f, --force    Skip confirmation prompt
+```
+
+## Global Options
+
+```bash
+# Show version
+todo --version
+
+# Show help
+todo --help
+todo <command> --help
+```
 
 Use `todo <command> --help` for detailed command usage.
 
