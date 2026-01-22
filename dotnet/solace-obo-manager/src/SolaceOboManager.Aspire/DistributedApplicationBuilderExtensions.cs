@@ -10,7 +10,7 @@ namespace SolaceOboManager.Aspire
     public static class DistributedApplicationBuilderExtensions
     {
         public static IResourceBuilder<SolaceResource> AddSolace(this IDistributedApplicationBuilder? builder,
-            string name)
+            string name, bool is_secure = false)
         {
             var solaceResource = new SolaceResource(name);
 
@@ -18,17 +18,25 @@ namespace SolaceOboManager.Aspire
                 .WithImage(SolaceResource.DefaultImage)
                 .WithImageRegistry(SolaceResource.DefaultRegistry)
                 .WithImageTag(SolaceResource.DefaultTag)
-                .WithContainerRuntimeArgs("--shm-size", "1g", "--ulimit", "core=-1", "--ulimit", "nofile=2448:6592")
+                .WithContainerRuntimeArgs("--shm-size", "2g", "--ulimit", "core=-1", "--ulimit", "nofile=2448:6592")
                 .WithEnvironment("system_scaling_maxconnectioncount", "100")
                 .WithEnvironment("username_admin_password", solaceResource.AdminPasswordParameter)
-                .WithEnvironment("username_admin_globalaccesslevel", "admin")
-                .WithHttpEndpoint(8080, 8080, "admin")
+                .WithEnvironment("username_admin_globalaccesslevel", "admin")                                
                 .WithEndpoint(8008, 8008, "ws")
-                .WithEndpoint(8000, 8000, "mqtt")
-                .WithEndpoint(port: 15555, targetPort: 55555, scheme: "tcp", name: "host")
+                .WithEndpoint(8000, 8000, "mqtt")                               
                 .WithHttpEndpoint(5550, 5550, "health")
                 .WithHttpHealthCheck("/health-check/direct-active", statusCode: 200, endpointName: "health");
 
+            if (!is_secure)
+            {
+                built.WithHttpEndpoint(8080, 8080, "admin")
+                    .WithEndpoint(port: 15555, targetPort: 55555, scheme: "tcp", name: "host");
+            }
+            else
+            {
+                built.WithEndpoint(port: 55443, targetPort: 55443, scheme: "tcps", name: "host")
+                    .WithEndpoint(port: 1943, targetPort: 1943, scheme: "https", name: "admin");
+            }
 
             var resource = solaceResource;
             var adminUsername = resource.AdminUsername;

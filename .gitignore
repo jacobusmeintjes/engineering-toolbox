@@ -419,3 +419,7 @@ FodyWeavers.xsd
 *.crt
 *.key
 *.pem
+/dotnet/solace-obo-manager/certificates
+/dotnet/solace-obo-manager/data/h2
+/dotnet/solace-obo-manager/src/certificates
+/dotnet/solace-obo-manager/src/data/h2
