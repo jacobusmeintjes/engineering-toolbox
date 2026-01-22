@@ -15,8 +15,6 @@ using var http = new HttpClient
 	BaseAddress = new Uri($"{keycloakUrl}/")
 };
 
-await WaitForKeycloakReadyAsync(http, TimeSpan.FromMinutes(3));
-
 var adminToken = await GetAdminAccessTokenAsync(http, adminUsername, adminPassword);
 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
@@ -75,31 +73,6 @@ static string GetRequired(string name)
 	return value;
 }
 
-static async Task WaitForKeycloakReadyAsync(HttpClient http, TimeSpan timeout)
-{
-	using var cts = new CancellationTokenSource(timeout);
-
-	while (true)
-	{
-		cts.Token.ThrowIfCancellationRequested();
-
-		try
-		{
-			using var response = await http.GetAsync("health/ready", cts.Token);
-			if (response.IsSuccessStatusCode)
-			{
-				Console.WriteLine("Keycloak is ready.");
-				return;
-			}
-		}
-		catch (HttpRequestException)
-		{
-			// ignore until ready
-		}
-
-		await Task.Delay(TimeSpan.FromSeconds(2), cts.Token);
-	}
-}
 
 static async Task<string> GetAdminAccessTokenAsync(HttpClient http, string username, string password)
 {

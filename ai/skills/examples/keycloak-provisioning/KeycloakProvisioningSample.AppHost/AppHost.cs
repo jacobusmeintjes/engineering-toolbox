@@ -1,22 +1,35 @@
+using Aspire.Hosting;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
+var postgresqlPassword = builder.AddParameter("postgres-password", "password", false);
 
 // Postgres for Keycloak persistence
-var keycloakDb = builder.AddPostgres("keycloak-postgres")
+var postgres = builder.AddPostgres("keycloak-postgres", password: postgresqlPassword)
     .WithDataVolume() // Persist database data across restarts
-    .AddDatabase("keycloak");
+    .WithPgAdmin()
+    .WithLifetime(ContainerLifetime.Persistent);
 
-var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak:26.0")
+
+
+var keycloakDb = postgres.AddDatabase("keycloak");
+
+//postgres.Resource.JdbcConnectionString
+
+var keycloak = builder.AddContainer("keycloak-ui", "quay.io/keycloak/keycloak:26.0")
     .WithHttpEndpoint(targetPort: 8080, name: "http")
     .WithEnvironment("KEYCLOAK_ADMIN", "admin")
     .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPassword)
     .WithEnvironment("KC_DB", "postgres")
-    .WithEnvironment("KC_DB_URL", keycloakDb)
-    .WithEnvironment("KC_DB_USERNAME", keycloakDb)
-    .WithEnvironment("KC_DB_PASSWORD", keycloakDb)
+    // Construct JDBC URL manually
+    .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{postgres.Resource.Name}:5432/keycloak")
+    .WithEnvironment("KC_DB_USERNAME", "postgres")  // Default PostgreSQL username
+    .WithEnvironment("KC_DB_PASSWORD", postgresqlPassword)
     .WithArgs("start-dev", "--http-port=8080")
-    .WaitFor(keycloakDb);
+    .WithHttpHealthCheck("/admin/master/console/", 200, "http")
+    .WaitFor(postgres)
+    .WithLifetime(ContainerLifetime.Persistent);
 
 const string realmName = "demo";
 
@@ -33,7 +46,7 @@ var apiService = builder.AddProject<Projects.KeycloakProvisioningSample_ApiServi
     .WithEnvironment("Keycloak__BaseUrl", keycloak.GetEndpoint("http"))
     .WithEnvironment("Keycloak__Realm", realmName)
     .WithEnvironment("Keycloak__Audience", "apiservice")
-    .WaitFor(keycloakProvisioner);
+    .WaitForCompletion(keycloakProvisioner);
 
 builder.AddProject<Projects.KeycloakProvisioningSample_Web>("webfrontend")
     .WithExternalHttpEndpoints()
