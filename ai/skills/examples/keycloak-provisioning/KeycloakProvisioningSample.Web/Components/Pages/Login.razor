@@ -1,0 +1,19 @@
+@page "/Account/Login"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Navigation
+@attribute [AllowAnonymous]
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var returnUrl = ReturnUrl ?? "/";
+        
+        // Trigger OIDC challenge which will redirect to Keycloak
+        Navigation.NavigateTo($"/Account/ExternalLogin?returnUrl={Uri.EscapeDataString(returnUrl)}", forceLoad: true);
+    }
+}

@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="KeycloakProvisioningSample.ApiService/KeycloakProvisioningSample.ApiService.csproj" />
+  <Project Path="KeycloakProvisioningSample.AppHost/KeycloakProvisioningSample.AppHost.csproj" />
+  <Project Path="KeycloakProvisioningSample.KeycloakProvisioner/KeycloakProvisioningSample.KeycloakProvisioner.csproj" />
+  <Project Path="KeycloakProvisioningSample.ServiceDefaults/KeycloakProvisioningSample.ServiceDefaults.csproj" />
+  <Project Path="KeycloakProvisioningSample.Web/KeycloakProvisioningSample.Web.csproj" />
+</Solution>

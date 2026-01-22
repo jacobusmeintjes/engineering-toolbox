@@ -1,0 +1,79 @@
+@page "/profile"
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>User Profile</PageTitle>
+
+<h1>User Profile</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">User Information</h5>
+                
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Username:</th>
+                            <td>@context.User.Identity?.Name</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email:</th>
+                            <td>@context.User.FindFirst("email")?.Value</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Tenant:</th>
+                            <td>@context.User.FindFirst("tenant")?.Value</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Roles:</th>
+                            <td>
+                                @{
+                                    var roles = context.User.Claims
+                                        .Where(c => c.Type == "realm_access.roles" || c.Type == System.Security.Claims.ClaimTypes.Role)
+                                        .Select(c => c.Value)
+                                        .ToList();
+                                    
+                                    if (roles.Any())
+                                    {
+                                        <ul class="list-unstyled mb-0">
+                                            @foreach (var role in roles)
+                                            {
+                                                <li><span class="badge bg-primary">@role</span></li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <em>No roles assigned</em>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h5 class="card-title mt-4">All Claims</h5>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var claim in context.User.Claims)
+                        {
+                            <tr>
+                                <td><code>@claim.Type</code></td>
+                                <td>@claim.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
