@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/project/">
+    <Project Path="src/orleans-hive-benchmarks/orleans-hive-benchmarks.csproj" Id="0993467b-6af5-437a-892c-2c0863c2dd54" />
     <Project Path="src/orleans-hive-client/orleans-hive-client.csproj" />
     <Project Path="src/orleans-hive-server/orleans-hive-server.csproj" />
     <Project Path="src/orleans-hive-shared/orleans-hive-shared.csproj" />

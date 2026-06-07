@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>dotnet-orleans_hive_client-b45d729f-6c47-4cbf-81c9-ffb6c237a657</UserSecretsId>
 		<RootNamespace>orleans_hive_client</RootNamespace>
+		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 
 	<ItemGroup>

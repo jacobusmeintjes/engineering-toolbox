@@ -30,6 +30,8 @@ builder.UseOrleans(siloBuilder =>
     {
         options.ConfigurationOptions = ConfigurationOptions.Parse(connStr!);
     });
+
+    //siloBuilder.AddMemoryGrainStorage("Default");
 });
 
 builder.Services.AddHostedService<Worker>();
@@ -42,30 +44,3 @@ app.Run();
 
 
 
-public class CounterState
-{
-    [Id(0)]
-    public int Count { get; set; }
-}
-
-
-[StatelessWorker]
-public class CounterGrain : Grain, ICounterGrain
-{
-
-    private readonly IPersistentState<CounterState> _state;
-    public CounterGrain([PersistentState("count", "Default")] IPersistentState<CounterState> state)
-    {
-        _state = state;
-    }
-    public async Task<int> Increment()
-    {
-        _state.State.Count++;
-        //await _state.WriteStateAsync();
-        return _state.State.Count;
-    }
-    public Task<int> GetCount()
-    {
-        return Task.FromResult(_state.State.Count);
-    }
-}
