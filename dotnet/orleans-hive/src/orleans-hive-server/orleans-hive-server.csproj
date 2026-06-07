@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-orleans_hive_server-5106bd06-b7b4-4eb9-933e-dc556dba8333</UserSecretsId>
+		<RootNamespace>orleans_hive_server</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>		
+		<PackageReference Include="Aspire.StackExchange.Redis" Version="13.4.2" />		
+		<PackageReference Include="Microsoft.Orleans.Clustering.Redis" Version="10.1.0" />		
+		<PackageReference Include="Microsoft.Orleans.Dashboard" Version="10.1.0" />		
+		<PackageReference Include="Microsoft.Orleans.Dashboard.Abstractions" Version="10.1.0" />
+		<PackageReference Include="Microsoft.Orleans.Persistence.Redis" Version="10.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Orleans.Server" Version="10.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\OrleansHive.ServiceDefaults\OrleansHive.ServiceDefaults.csproj" />
+		<ProjectReference Include="..\orleans-hive-shared\orleans-hive-shared.csproj" />
+	</ItemGroup>
+</Project>

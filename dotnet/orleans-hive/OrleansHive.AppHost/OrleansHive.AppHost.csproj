@@ -1,0 +1,22 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.2">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UserSecretsId>73933705-774b-42e0-8917-b59e30912f8e</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.2" />
+		<PackageReference Include="Aspire.Hosting.Redis" Version="13.4.2" />
+		<PackageReference Include="Aspire.Hosting.Orleans" Version="13.4.2" />		
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\src\orleans-hive-client\orleans-hive-client.csproj" />
+		<ProjectReference Include="..\src\orleans-hive-server\orleans-hive-server.csproj" />
+	</ItemGroup>
+
+</Project>

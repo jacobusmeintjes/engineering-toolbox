@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/project/">
+    <Project Path="src/orleans-hive-client/orleans-hive-client.csproj" />
+    <Project Path="src/orleans-hive-server/orleans-hive-server.csproj" />
+    <Project Path="src/orleans-hive-shared/orleans-hive-shared.csproj" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="scripts/01_PostgreSQL-Main.sql" />
+    <File Path="scripts/02_PostgreSQL-Clustering.sql" />
+    <File Path="scripts/03_PostgreSQL-Persistence.sql" />
+    <File Path="scripts/04_PostgreSQL-Reminders.sql" />
+    <File Path="scripts/05_PostgreSQL-Streaming.sql" />
+  </Folder>
+  <Project Path="OrleansHive.AppHost/OrleansHive.AppHost.csproj" />
+  <Project Path="OrleansHive.ServiceDefaults/OrleansHive.ServiceDefaults.csproj" />
+</Solution>
