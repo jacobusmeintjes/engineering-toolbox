@@ -1,0 +1,14 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "orleans_hive_server": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,     
+      "applicationUrl": "http://localhost:5314",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
