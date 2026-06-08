@@ -20,8 +20,15 @@ var app = builder.Build();
 app.MapGet("/", async (IGrainFactory grains) =>
 {
     var grain = grains.GetGrain<ICounterGrain>("counter");
+    var count = await grain.GetCount();
+    return count;
+});
+
+app.MapPost("/", async (IGrainFactory grains) =>
+{
+    var grain = grains.GetGrain<ICounterGrain>("counter");
     var count = await grain.Increment();
-    return Results.Ok(new { count });
+    return Results.Accepted();
 });
 
 app.Run();
