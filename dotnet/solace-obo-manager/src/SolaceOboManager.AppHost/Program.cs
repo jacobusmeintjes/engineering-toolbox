@@ -4,14 +4,16 @@ using SolaceOboManager.Aspire.Model;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var cache = builder.AddRedis("cache").WithRedisInsight().WithLifetime(ContainerLifetime.Persistent);
+var cache = builder.AddRedis("cache")
+    .WithRedisInsight(options=>options.WithHostPort(16379))
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var username = builder.AddParameter("username", "postgres", secret: false);
 
 var password = builder.AddParameter("password", "password123!", secret: false);
 
 var postgres = builder.AddPostgres("postgres", username, password)
-    .WithPgAdmin()
+    .WithPgAdmin(options => options.WithHostPort(15432))
     .WithLifetime(ContainerLifetime.Persistent);
 
 builder.Configuration["DcpPublisher:RandomizePorts"] = "false";
@@ -48,6 +50,10 @@ builder.AddProject<Projects.SolaceOboManager_Producer>("solaceobomanager-produce
 
 builder.AddProject<Projects.SolaceOboManager_Channels_Worker>("solaceobomanager-channels-worker")
     .WithReference(solace)
-    .WaitFor(solace);
+    .WaitFor(solace)
+    .WithExplicitStart();
+
+
+
 
 builder.Build().Run();
