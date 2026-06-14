@@ -19,6 +19,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\usecase\order-management\Contracts\Contracts.csproj" />
+		<ProjectReference Include="..\..\usecase\order-management\FulfillmentService\FulfilmentService.csproj" />
+		<ProjectReference Include="..\..\usecase\order-management\InventoryService\InventoryService.csproj" />
+		<ProjectReference Include="..\..\usecase\order-management\NotificationService\NotificationService.csproj" />
+		<ProjectReference Include="..\..\usecase\order-management\OrderService\OrderService.csproj" />
+		<ProjectReference Include="..\..\usecase\order-management\PaymentService\PaymentService.csproj" />
 		<ProjectReference Include="..\SolaceOboManager.Aspire\SolaceOboManager.Aspire.csproj" IsAspireProjectResource="false" />
 		<ProjectReference Include="..\SolaceOboManager.Channels.Worker\SolaceOboManager.Channels.Worker.csproj" />
 		<ProjectReference Include="..\SolaceOboManager.Client\SolaceOboManager.Client.csproj" />

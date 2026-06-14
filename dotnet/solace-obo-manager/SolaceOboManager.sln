@@ -44,7 +44,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentService", "usecase\o
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService", "usecase\order-management\InventoryService\InventoryService.csproj", "{E492C82D-3AD0-4D01-8A97-087E8C65657B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FulfillmentService", "usecase\order-management\FulfillmentService\FulfillmentService.csproj", "{C679528D-7DAA-4623-ADB8-4B818F99957E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FulfilmentService", "usecase\order-management\FulfillmentService\FulfilmentService.csproj", "{C679528D-7DAA-4623-ADB8-4B818F99957E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "usecase\order-management\NotificationService\NotificationService.csproj", "{2F65EEC2-6E58-4008-9B08-61B7BE2C193B}"
 EndProject

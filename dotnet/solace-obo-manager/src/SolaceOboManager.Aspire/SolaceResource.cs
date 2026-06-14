@@ -1,5 +1,4 @@
 ﻿using Aspire.Hosting.ApplicationModel;
-using Humanizer.Localisation;
 using SolaceOboManager.Aspire.Model;
 using SolaceOboManager.Aspire.Solace;
 
