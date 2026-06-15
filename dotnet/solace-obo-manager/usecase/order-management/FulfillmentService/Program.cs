@@ -1,6 +1,10 @@
 using FulfillmentService.Repositories;
 using FulfillmentService.Services;
+using FulfilmentService.Consumers;
+using Messaging.Events.Inventory;
 using Microsoft.EntityFrameworkCore;
+using OrderService.HttpClients;
+using static Messaging.MessagingServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +20,11 @@ builder.Services.AddDbContext<FulfilmentDbContext>(opt =>
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddSingleton<IWarehouseSystem, WarehouseSystem>();
 builder.Services.AddSingleton<ICarrierService, CarrierService>();
+
+// Solace
+builder.Services.AddMessaging(builder.Configuration);
+builder.Services.AddSubscriber<StockReserved, StockReservedConsumer>();
+builder.Services.AddHostedService<StockReservedSubscriber>();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

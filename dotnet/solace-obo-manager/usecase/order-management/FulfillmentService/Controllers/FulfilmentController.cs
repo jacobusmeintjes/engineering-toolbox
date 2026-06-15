@@ -3,6 +3,9 @@ using Contracts.Responses;
 using FulfillmentService.Domain;
 using FulfillmentService.Repositories;
 using FulfillmentService.Services;
+using Messaging.Abstractions;
+using Messaging.Events.Fulfilment;
+using Messaging.Topics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FulfillmentService.Controllers
@@ -15,6 +18,7 @@ namespace FulfillmentService.Controllers
         IShipmentRepository repo,
         IWarehouseSystem warehouse,
         ICarrierService carrier,
+        IEventPublisher publisher,
         ILogger<FulfilmentController> logger) : ControllerBase
     {
         [HttpPost("shipments")]
@@ -27,6 +31,7 @@ namespace FulfillmentService.Controllers
 
             var shipment = Shipment.Create(
                 request.OrderId,
+                request.CustomerId,
                 request.ShippingAddress,
                 request.Items);
 
@@ -91,42 +96,54 @@ namespace FulfillmentService.Controllers
             await repo.UpdateAsync(shipment, ct);
 
             return Ok(shipment.ToResponse());
-        }
+        }        
+
 
         [HttpPost("{shipmentId:guid}/ship")]
-        [ProducesResponseType(typeof(ShipmentResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ShipmentResponse>> MarkShipped(
-            Guid shipmentId, CancellationToken ct)
+    Guid shipmentId, CancellationToken ct)
         {
             var shipment = await repo.GetByIdAsync(shipmentId, ct);
-
-            if (shipment is null)
-                return NotFound($"Shipment {shipmentId} not found");
+            if (shipment is null) return NotFound($"Shipment {shipmentId} not found");
 
             var booking = await carrier.BookCollectionAsync(shipment, ct);
-
             shipment.MarkShipped(booking.TrackingNumber, booking.CarrierCode);
             await repo.UpdateAsync(shipment, ct);
+
+            await publisher.PublishAsync(
+                new ShipmentShipped
+                {
+                    ShipmentId = shipment.Id,
+                    OrderId = shipment.OrderId,
+                    CustomerId = shipment.CustomerId,
+                    TrackingNumber = booking.TrackingNumber,
+                    CarrierCode = booking.CarrierCode,
+                    EstimatedDelivery = booking.EstimatedDelivery
+                },
+                Topics.Fulfilment.ShipmentShipped, ct);
 
             return Ok(shipment.ToResponse());
         }
 
         [HttpPost("{shipmentId:guid}/deliver")]
-        [ProducesResponseType(typeof(ShipmentResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ShipmentResponse>> MarkDelivered(
             Guid shipmentId, CancellationToken ct)
         {
             var shipment = await repo.GetByIdAsync(shipmentId, ct);
-
-            if (shipment is null)
-                return NotFound($"Shipment {shipmentId} not found");
+            if (shipment is null) return NotFound($"Shipment {shipmentId} not found");
 
             shipment.MarkDelivered();
             await repo.UpdateAsync(shipment, ct);
+
+            await publisher.PublishAsync(
+                new ShipmentDelivered
+                {
+                    ShipmentId = shipment.Id,
+                    OrderId = shipment.OrderId,
+                    CustomerId = shipment.CustomerId,
+                    DeliveredAt = shipment.DeliveredAt!.Value
+                },
+                Topics.Fulfilment.ShipmentDelivered, ct);
 
             return Ok(shipment.ToResponse());
         }

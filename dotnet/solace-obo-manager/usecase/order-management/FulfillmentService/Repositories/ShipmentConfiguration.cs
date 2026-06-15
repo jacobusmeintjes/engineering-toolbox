@@ -19,6 +19,8 @@ namespace FulfillmentService.Repositories
             builder.Property(s => s.OrderId)
                 .IsRequired();
 
+            builder.Property(s => s.CustomerId).IsRequired();
+
             builder.Property(s => s.ShippingAddress)
                 .IsRequired()
                 .HasMaxLength(500);

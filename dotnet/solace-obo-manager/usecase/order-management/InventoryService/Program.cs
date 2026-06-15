@@ -1,6 +1,9 @@
+using InventoryService.Consumer;
 using InventoryService.Repositories;
 using InventoryService.Services;
+using Messaging.Events.Payments;
 using Microsoft.EntityFrameworkCore;
+using static Messaging.MessagingServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,15 @@ builder.Services.AddDbContext<InventoryDbContext>(opt =>
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService.Services.InventoryService>();
+
+builder.Services.AddSubscriber<PaymentAuthorised, PaymentAuthorisedConsumer>();
+builder.Services.AddHostedService<PaymentAuthorisedSubscriber>();
+
+builder.Services.AddSubscriber<PaymentFailed, PaymentFailedConsumer>();
+builder.Services.AddHostedService<PaymentFailedSubscriber>();
+
+builder.Services.AddMessaging(builder.Configuration);
+
 
 // Add services to the container.
 builder.AddServiceDefaults();

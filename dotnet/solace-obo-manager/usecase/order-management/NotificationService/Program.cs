@@ -1,4 +1,8 @@
+using Messaging;
+using Messaging.Events.Fulfilment;
+using Messaging.Events.Payments;
 using Microsoft.EntityFrameworkCore;
+using NotificationService.Consumers;
 using NotificationService.Repositories;
 using NotificationService.Services;
 
@@ -21,6 +25,23 @@ builder.Services.AddScoped<INotificationService, NotificationService.Services.No
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<ISmsGateway, SmsGateway>();
 builder.Services.AddSingleton<ICustomerResolver, CustomerResolver>();
+
+
+builder.Services.AddMessaging(builder.Configuration);
+
+
+builder.Services.AddSubscriber<ShipmentCreated, ShipmentCreatedConsumer>();
+builder.Services.AddHostedService<ShipmentCreatedSubscriber>();
+
+builder.Services.AddSubscriber<ShipmentShipped, ShipmentShippedConsumer>();
+builder.Services.AddHostedService<ShipmentShippedSubscriber>();
+
+builder.Services.AddSubscriber<ShipmentDelivered, ShipmentDeliveredConsumer>();
+builder.Services.AddHostedService<ShipmentDeliveredSubscriber>();
+
+builder.Services.AddSubscriber<PaymentFailed, PaymentFailedConsumer>();
+builder.Services.AddHostedService<PaymentFailedSubscriber>();
+
 
 var app = builder.Build();
 

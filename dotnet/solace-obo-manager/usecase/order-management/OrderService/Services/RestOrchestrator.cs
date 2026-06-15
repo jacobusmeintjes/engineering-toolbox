@@ -65,6 +65,7 @@ namespace OrderService.Services
             // 4. Create shipment — blocks here
             var shipmentResult = await fulfilment.CreateShipmentAsync(new CreateShipmentRequest(
                 order.Id,
+                order.CustomerId,
                 order.ShippingAddress,
                 order.LineItems.Select(item => 
                 new OrderItem(item.ProductId, 

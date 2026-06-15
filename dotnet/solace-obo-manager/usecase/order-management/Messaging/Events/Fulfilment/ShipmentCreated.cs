@@ -10,6 +10,8 @@ namespace Messaging.Events.Fulfilment
         public required Guid ShipmentId { get; init; }
         public required Guid OrderId { get; init; }
         public required Guid CustomerId { get; init; }
+        public required decimal Amount { get; init; }           // ← carried forward
+
         public required DateTimeOffset EstimatedDelivery { get; init; }
     }
 }

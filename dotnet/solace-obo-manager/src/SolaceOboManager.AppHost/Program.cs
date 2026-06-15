@@ -73,13 +73,15 @@ var notificationService = builder.AddProject<Projects.NotificationService>("noti
     .WithReference(notificationDb, "NotificationDb")
     .WaitFor(notificationDb);
 
-
 var fulfilmentService = builder.AddProject<Projects.FulfilmentService>("fulfilmentservice")
     .WithReference(fulfilmentDb, "FulfilmentDb")
+    .WithReference(notificationService)
     .WaitFor(fulfilmentDb);
 
 var inventoryService = builder.AddProject<Projects.InventoryService>("inventoryservice")
     .WithReference(inventoryDb, "InventoryDb")
+    .WithReference(fulfilmentService)
+    .WithReference(notificationService)
     .WaitFor(inventoryDb);
 
 var paymentService = builder.AddProject<Projects.PaymentService>("paymentservice")

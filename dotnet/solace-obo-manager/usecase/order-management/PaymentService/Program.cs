@@ -28,24 +28,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddMessaging(builder.Configuration);
 
 builder.Services.AddSubscriber<OrderPlaced, OrderPlacedConsumer>();
-builder.Services.AddSubscriber<StockReservationFailed, PaymentVoidRequestedConsumer>();
-
 builder.Services.AddHostedService<OrderPlacedSubscriber>();
-builder.Services.AddHostedService<PaymentVoidRequestedSubscriber>();
 
-var inventoryServiceUri = builder.Configuration["Services:InventoryService:HTTPS:0"]!;
-var fulfilmentServiceUri = builder.Configuration["Services:FulfilmentService:HTTPS:0"]!;
-var notificationServiceUri = builder.Configuration["Services:NotificationService:HTTPS:0"]!;
-
-builder.Services.AddHttpClient<IInventoryClient, InventoryClient>(c =>
-    c.BaseAddress = new Uri(inventoryServiceUri));
-
-builder.Services.AddHttpClient<IFulfilmentClient, FulfilmentClient>(c =>
-    c.BaseAddress = new Uri(fulfilmentServiceUri));
-
-builder.Services.AddHttpClient<INotificationClient, NotificationClient>(c =>
-    c.BaseAddress = new Uri(notificationServiceUri));
-
+builder.Services.AddSubscriber<StockReservationFailed, StockReservationFailedConsumer>();
+builder.Services.AddHostedService<StockReservationFailedSubscriber>();
 
 
 var app = builder.Build();

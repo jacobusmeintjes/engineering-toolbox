@@ -4,11 +4,11 @@ using Messaging.Topics;
 
 namespace PaymentService.Consumers
 {
-    // Consumers/PaymentVoidRequestedSubscriber.cs
-    public class PaymentVoidRequestedSubscriber(
+    // Consumers/StockReservationFailedSubscriber.cs
+    public class StockReservationFailedSubscriber(
         SolaceConnection connection,
         IServiceScopeFactory scopeFactory,
-        ILogger<PaymentVoidRequestedSubscriber> logger)
+        ILogger<StockReservationFailedSubscriber> logger)
         : SolaceSubscriber<StockReservationFailed>(
             connection,
             scopeFactory,

@@ -8,12 +8,12 @@ using PaymentService.Services;
 
 namespace PaymentService.Consumers
 {
-    // Consumers/PaymentVoidRequestedConsumer.cs
-    public class PaymentVoidRequestedConsumer(
+    // Consumers/StockReservationFailedConsumer.cs
+    public class StockReservationFailedConsumer(
         IPaymentGateway gateway,
         IPaymentRepository repo,
         IEventPublisher publisher,
-        ILogger<PaymentVoidRequestedConsumer> logger) : IEventHandler<StockReservationFailed>
+        ILogger<StockReservationFailedConsumer> logger) : IEventHandler<StockReservationFailed>
     {
         public async Task HandleAsync(StockReservationFailed @event, CancellationToken ct)
         {
@@ -34,13 +34,12 @@ namespace PaymentService.Consumers
             if (record.Status != PaymentStatus.Authorised)
             {
                 logger.LogWarning(
-                    "Payment for order {OrderId} is in status {Status} — skipping void",
+                    "Payment for order {OrderId} is {Status} — skipping void",
                     @event.OrderId, record.Status);
                 return;
             }
 
             await gateway.VoidAsync(record.TransactionId!, ct);
-
             record.Void();
             await repo.UpdateAsync(record, ct);
 

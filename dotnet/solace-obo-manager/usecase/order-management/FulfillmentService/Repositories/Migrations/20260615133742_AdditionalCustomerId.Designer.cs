@@ -3,17 +3,20 @@ using System;
 using FulfillmentService.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FulfillmentService.Repositories.Migrations
+namespace FulfilmentService.Repositories.Migrations
 {
     [DbContext(typeof(FulfilmentDbContext))]
-    partial class FulfilmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260615133742_AdditionalCustomerId")]
+    partial class AdditionalCustomerId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

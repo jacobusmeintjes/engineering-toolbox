@@ -53,8 +53,11 @@ namespace Messaging.Infrastructure
         {
             await _connection.InitialiseAsync(ct);
 
-            // Create a durable queue so messages survive service restarts
-            var queueName = $"oms/{typeof(TEvent).Name.ToLowerInvariant()}/{QueueSuffix}";
+            // Queue name derived from topic + service suffix
+            // e.g. "oms.inventory.v1.reservation-failed.payment-service"
+            var sanitisedTopic = _topic.Replace("/", ".");
+            var queueName = $"{sanitisedTopic}.{QueueSuffix}";
+
             _queue = ContextFactory.Instance.CreateQueue(queueName);
 
             // Provision the queue on the broker if it doesn't exist

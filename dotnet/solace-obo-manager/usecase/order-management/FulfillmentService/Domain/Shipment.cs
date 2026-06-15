@@ -8,6 +8,8 @@ namespace FulfillmentService.Domain
     {
         public Guid Id { get; private set; }
         public Guid OrderId { get; private set; }
+        public Guid CustomerId { get; private set; }       // ← new
+
         public string ShippingAddress { get; private set; } = default!;
         public ShipmentStatus Status { get; private set; }
         public string? TrackingNumber { get; private set; }
@@ -24,6 +26,7 @@ namespace FulfillmentService.Domain
 
         public static Shipment Create(
             Guid orderId,
+             Guid customerId,
             string shippingAddress,
             IReadOnlyList<OrderItem> items)
         {
@@ -31,6 +34,7 @@ namespace FulfillmentService.Domain
             {
                 Id = Guid.NewGuid(),
                 OrderId = orderId,
+                CustomerId = customerId,
                 ShippingAddress = shippingAddress,
                 Status = ShipmentStatus.Pending,
                 CreatedAt = DateTimeOffset.UtcNow,
