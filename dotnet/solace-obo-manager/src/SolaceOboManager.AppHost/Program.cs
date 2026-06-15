@@ -4,21 +4,38 @@ using SolaceOboManager.Aspire.Model;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var cache = builder.AddRedis("cache").WithRedisInsight().WithLifetime(ContainerLifetime.Persistent);
+var cache = builder.AddRedis("cache")
+    .WithRedisInsight(options=>
+    {
+        options.WithHostPort(16379);
+        options.WithLifetime(ContainerLifetime.Persistent);
+    })
+    .WithLifetime(ContainerLifetime.Persistent);
 
 var username = builder.AddParameter("username", "postgres", secret: false);
 
 var password = builder.AddParameter("password", "password123!", secret: false);
 
 var postgres = builder.AddPostgres("postgres", username, password)
-    .WithPgAdmin()
+    .WithPgAdmin(options =>
+    {
+        options.WithHostPort(15432);
+        options.WithLifetime(ContainerLifetime.Persistent);
+    })
     .WithLifetime(ContainerLifetime.Persistent);
+
+var orderDb = postgres.AddDatabase("OrderDb");
+var paymentDb = postgres.AddDatabase("PaymentDb");
+var inventoryDb = postgres.AddDatabase("InventoryDb");
+var fulfilmentDb = postgres.AddDatabase("FulfilmentDb");
+var notificationDb = postgres.AddDatabase("NotificationDb");
 
 builder.Configuration["DcpPublisher:RandomizePorts"] = "false";
 
 var solace = builder.AddSolace("solace")
     .WithSolaceVolume()
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithExplicitStart();
 
 solace.Resource.AddClientProfile(new ClientProfile("clientProfile", true, 2000));
 solace.Resource.AddAclProfile(new AclProfile("clientProfile", "allow"));
@@ -33,7 +50,8 @@ builder.AddProject<Projects.SolaceOboManager_Manager>("solaceobomanager-manager"
     .WithEnvironment("SolaceConfiguration__Password", "password")
     .WithReference(solace)
     .WaitFor(solace)
-    .WithReplicas(1);
+    .WithReplicas(1)
+    .WithExplicitStart();
 
 builder.AddProject<Projects.SolaceOboManager_Client>("solaceobomanager-client")
     .WithReference(solace)
@@ -48,6 +66,43 @@ builder.AddProject<Projects.SolaceOboManager_Producer>("solaceobomanager-produce
 
 builder.AddProject<Projects.SolaceOboManager_Channels_Worker>("solaceobomanager-channels-worker")
     .WithReference(solace)
+    .WaitFor(solace)
+    .WithExplicitStart();
+
+var notificationService = builder.AddProject<Projects.NotificationService>("notificationservice")
+    .WithReference(notificationDb, "NotificationDb")
+    .WaitFor(notificationDb);
+
+var fulfilmentService = builder.AddProject<Projects.FulfilmentService>("fulfilmentservice")
+    .WithReference(fulfilmentDb, "FulfilmentDb")
+    .WithReference(notificationService)
+    .WaitFor(fulfilmentDb);
+
+var inventoryService = builder.AddProject<Projects.InventoryService>("inventoryservice")
+    .WithReference(inventoryDb, "InventoryDb")
+    .WithReference(fulfilmentService)
+    .WithReference(notificationService)
+    .WaitFor(inventoryDb);
+
+var paymentService = builder.AddProject<Projects.PaymentService>("paymentservice")
+    .WithReference(paymentDb, "PaymentDb")
+    .WithReference(inventoryService)
+    .WithReference(fulfilmentService)
+    .WithReference(notificationService)
+    .WaitFor(paymentDb);
+
+var orderService = builder.AddProject<Projects.OrderService>("orderservice")
+    .WithReference(orderDb, "OrderDb")
+    .WithReference(paymentService)
+    .WithReference(inventoryService)
+    .WithReference(fulfilmentService)
+    .WithReference(notificationService)
+    
+    .WaitFor(orderDb)
+    .WaitFor(paymentService)
+    .WaitFor(inventoryService)
+    .WaitFor(fulfilmentService)
+    .WaitFor(notificationService)
     .WaitFor(solace);
 
 builder.Build().Run();
