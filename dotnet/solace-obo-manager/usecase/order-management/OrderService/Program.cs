@@ -5,6 +5,7 @@ using OrderService.Exceptions;
 using OrderService.HttpClients;
 using OrderService.Repositories;
 using OrderService.Services;
+using static Messaging.MessagingServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,10 @@ builder.Services.AddDbContext<OrderDbContext>(opt =>
 
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<OrderOrchestrator>();
+builder.Services.AddScoped<RestOrchestrator>();
+
+builder.Services.AddMessaging(builder.Configuration);
+builder.Services.AddScoped<EventDrivenOrderOrchestrator>();
 
 // Typed HTTP clients — each pointing at its own service
 var paymentServiceUri = builder.Configuration["Services:PaymentService:HTTPS:0"]!;

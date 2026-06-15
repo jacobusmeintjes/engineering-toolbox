@@ -9,12 +9,12 @@ using OrderService.Repositories;
 namespace OrderService.Services
 {
     // Oms.OrderService/Services/OrderOrchestrator.cs
-    public class OrderOrchestrator(
+    public class RestOrchestrator(
         IOrderRepository orders,
         IPaymentClient payment,
         IInventoryClient inventory,
         IFulfilmentClient fulfilment,
-        INotificationClient notification)
+        INotificationClient notification) : IOrderOrchestrator
     {
         public async Task<OrderResponse> PlaceOrderAsync(PlaceOrderRequest request, CancellationToken ct)
         {

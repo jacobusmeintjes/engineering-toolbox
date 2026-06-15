@@ -1,6 +1,11 @@
+using Messaging.Events.Inventory;
+using Messaging.Events.Orders;
 using Microsoft.EntityFrameworkCore;
+using OrderService.HttpClients;
+using PaymentService.Consumers;
 using PaymentService.Repositories;
 using PaymentService.Services;
+using static Messaging.MessagingServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +23,30 @@ builder.Services.AddEndpointsApiExplorer();  // add this
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Solace — consumers run as hosted background services
+builder.Services.AddMessaging(builder.Configuration);
+
+builder.Services.AddSubscriber<OrderPlaced, OrderPlacedConsumer>();
+builder.Services.AddSubscriber<StockReservationFailed, PaymentVoidRequestedConsumer>();
+
+builder.Services.AddHostedService<OrderPlacedSubscriber>();
+builder.Services.AddHostedService<PaymentVoidRequestedSubscriber>();
+
+var inventoryServiceUri = builder.Configuration["Services:InventoryService:HTTPS:0"]!;
+var fulfilmentServiceUri = builder.Configuration["Services:FulfilmentService:HTTPS:0"]!;
+var notificationServiceUri = builder.Configuration["Services:NotificationService:HTTPS:0"]!;
+
+builder.Services.AddHttpClient<IInventoryClient, InventoryClient>(c =>
+    c.BaseAddress = new Uri(inventoryServiceUri));
+
+builder.Services.AddHttpClient<IFulfilmentClient, FulfilmentClient>(c =>
+    c.BaseAddress = new Uri(fulfilmentServiceUri));
+
+builder.Services.AddHttpClient<INotificationClient, NotificationClient>(c =>
+    c.BaseAddress = new Uri(notificationServiceUri));
+
+
 
 var app = builder.Build();
 

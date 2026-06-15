@@ -25,7 +25,7 @@ namespace SolaceOboManager.Aspire
                 .WithHttpEndpoint(8080, 8080, "admin")
                 .WithEndpoint(8008, 8008, "ws")
                 .WithEndpoint(8000, 8000, "mqtt")
-                .WithEndpoint(port: 15555, targetPort: 55555, scheme: "tcp", name: "host")
+                .WithEndpoint(port: 15555, targetPort: 55555, scheme: "tcp", name: "smf")
                 .WithHttpEndpoint(5550, 5550, "health")
                 .WithHttpHealthCheck("/health-check/direct-active", statusCode: 200, endpointName: "health");
 

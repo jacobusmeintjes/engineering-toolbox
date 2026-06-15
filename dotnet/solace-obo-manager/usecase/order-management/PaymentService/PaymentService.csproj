@@ -18,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\SolaceOboManager.ServiceDefaults\SolaceOboManager.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\OrderService\OrderService.csproj" />
   </ItemGroup>
 
 </Project>

@@ -50,7 +50,8 @@ builder.AddProject<Projects.SolaceOboManager_Manager>("solaceobomanager-manager"
     .WithEnvironment("SolaceConfiguration__Password", "password")
     .WithReference(solace)
     .WaitFor(solace)
-    .WithReplicas(1);
+    .WithReplicas(1)
+    .WithExplicitStart();
 
 builder.AddProject<Projects.SolaceOboManager_Client>("solaceobomanager-client")
     .WithReference(solace)
@@ -68,22 +69,25 @@ builder.AddProject<Projects.SolaceOboManager_Channels_Worker>("solaceobomanager-
     .WaitFor(solace)
     .WithExplicitStart();
 
+var notificationService = builder.AddProject<Projects.NotificationService>("notificationservice")
+    .WithReference(notificationDb, "NotificationDb")
+    .WaitFor(notificationDb);
 
-var paymentService = builder.AddProject<Projects.PaymentService>("paymentservice")
-    .WithReference(paymentDb, "PaymentDb")
-    .WaitFor(paymentDb);
-
-var inventoryService = builder.AddProject<Projects.InventoryService>("inventoryservice")
-    .WithReference(inventoryDb, "InventoryDb")
-    .WaitFor(inventoryDb);
 
 var fulfilmentService = builder.AddProject<Projects.FulfilmentService>("fulfilmentservice")
     .WithReference(fulfilmentDb, "FulfilmentDb")
     .WaitFor(fulfilmentDb);
 
-var notificationService = builder.AddProject<Projects.NotificationService>("notificationservice")
-    .WithReference(notificationDb, "NotificationDb")
-    .WaitFor(notificationDb);
+var inventoryService = builder.AddProject<Projects.InventoryService>("inventoryservice")
+    .WithReference(inventoryDb, "InventoryDb")
+    .WaitFor(inventoryDb);
+
+var paymentService = builder.AddProject<Projects.PaymentService>("paymentservice")
+    .WithReference(paymentDb, "PaymentDb")
+    .WithReference(inventoryService)
+    .WithReference(fulfilmentService)
+    .WithReference(notificationService)
+    .WaitFor(paymentDb);
 
 var orderService = builder.AddProject<Projects.OrderService>("orderservice")
     .WithReference(orderDb, "OrderDb")
@@ -91,10 +95,12 @@ var orderService = builder.AddProject<Projects.OrderService>("orderservice")
     .WithReference(inventoryService)
     .WithReference(fulfilmentService)
     .WithReference(notificationService)
+    
     .WaitFor(orderDb)
     .WaitFor(paymentService)
     .WaitFor(inventoryService)
     .WaitFor(fulfilmentService)
-    .WaitFor(notificationService);
+    .WaitFor(notificationService)
+    .WaitFor(solace);
 
 builder.Build().Run();

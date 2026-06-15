@@ -5,5 +5,4 @@
         bool Success,
         string? TransactionId,
         string? FailureReason);
-
 }

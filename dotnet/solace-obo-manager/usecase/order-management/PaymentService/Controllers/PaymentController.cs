@@ -15,17 +15,21 @@ namespace PaymentService.Controllers
         ILogger<PaymentsController> logger) : ControllerBase
     {
         [HttpPost("authorise")]
+        [ProducesResponseType(typeof(AuthorisePaymentResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<AuthorisePaymentResponse>> Authorise(
             AuthorisePaymentRequest request, CancellationToken ct)
         {
-            logger.LogInformation("Authorising payment for order {OrderId}", request.OrderId);
+            logger.LogInformation(
+             "REST — authorising payment for order {OrderId}", request.OrderId);
 
             var result = await gateway.AuthoriseAsync(
                 request.PaymentMethodToken, request.Amount, ct);
 
             var record = result.Success
-                ? PaymentRecord.CreateAuthorised(request.OrderId, request.Amount, result.TransactionId!)
-                : PaymentRecord.CreateFailed(request.OrderId, request.Amount, result.FailureReason!);
+                ? PaymentRecord.CreateAuthorised(
+                    request.OrderId, request.Amount, result.TransactionId!)
+                : PaymentRecord.CreateFailed(
+                    request.OrderId, request.Amount, result.FailureReason!);
 
             await repo.SaveAsync(record, ct);
 
@@ -36,10 +40,13 @@ namespace PaymentService.Controllers
         }
 
         [HttpPost("void")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Void(
             VoidPaymentRequest request, CancellationToken ct)
         {
-            logger.LogInformation("Voiding transaction {TransactionId}", request.TransactionId);
+            logger.LogInformation(
+           "REST — voiding transaction {TransactionId}", request.TransactionId);
 
             var record = await repo.GetByTransactionIdAsync(request.TransactionId, ct);
 
@@ -52,6 +59,27 @@ namespace PaymentService.Controllers
             await repo.UpdateAsync(record, ct);
 
             return NoContent();
+        }
+
+        // Shared read endpoint — useful for checking payment status in either mode
+        [HttpGet("order/{orderId:guid}")]
+        [ProducesResponseType(typeof(PaymentStatusResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PaymentStatusResponse>> GetByOrderId(
+            Guid orderId, CancellationToken ct)
+        {
+            var record = await repo.GetByOrderIdAsync(orderId, ct);
+
+            if (record is null)
+                return NotFound($"No payment found for order {orderId}");
+
+            return Ok(new PaymentStatusResponse(
+                record.OrderId,
+                record.Status.ToString(),
+                record.TransactionId,
+                record.Amount,
+                record.FailureReason,
+                record.CreatedAt));
         }
     }
 }

@@ -11,11 +11,12 @@ namespace OrderService.Controllers
     [ApiController]
     [Route("[controller]")]
     public class OrdersController(
-        OrderOrchestrator orchestrator,
-        IOrderRepository orders,
+        RestOrchestrator restOrchestrator,
+        EventDrivenOrderOrchestrator eventDrivenOrderOrchestrator,
+        //IOrderRepository orders,
         ILogger<OrdersController> logger) : ControllerBase
     {
-        [HttpPost]
+        [HttpPost("rest")]
         public async Task<ActionResult<OrderResponse>> PlaceOrder(
             PlaceOrderRequest request, CancellationToken ct)
         {
@@ -23,9 +24,30 @@ namespace OrderService.Controllers
                 "Placing order for customer {CustomerId} with {ItemCount} items",
                 request.CustomerId, request.Items.Count);
              
-            var response = await orchestrator.PlaceOrderAsync(request, ct);
+            var response = await restOrchestrator.PlaceOrderAsync(request, ct);
 
             return Ok(new { orderId = response.OrderId });
+            //return CreatedAtAction(
+            //    nameof(GetById),
+            //    new { orderId = response.OrderId },
+            //    response);
+        }
+
+        [HttpPost("events")]
+        [ProducesResponseType(typeof(OrderResponse), StatusCodes.Status202Accepted)]
+        public async Task<ActionResult<OrderResponse>> PlaceOrderEvent(
+            PlaceOrderRequest request, CancellationToken ct)
+        {
+            logger.LogInformation(
+                "EVENT — placing order for customer {CustomerId}", request.CustomerId);
+
+            var response = await eventDrivenOrderOrchestrator.PlaceOrderAsync(request, ct);
+
+            return Ok(new { orderId = response.OrderId });
+            //return AcceptedAtAction(
+            //    nameof(GetById),
+            //    new { orderId = response.OrderId },
+            //    response);
         }
 
         //[HttpGet("{orderId:guid}")]
