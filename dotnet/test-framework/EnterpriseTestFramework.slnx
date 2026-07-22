@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/Hosting/">
+    <Project Path="EnterpriseTestFramework.AppHost/EnterpriseTestFramework.AppHost.csproj" />
+    <Project Path="EnterpriseTestFramework.ServiceDefaults/EnterpriseTestFramework.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/Source/">
+    <Project Path="src/EnterpriseTestFramework.Core/EnterpriseTestFramework.Core.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/EnterpriseTestFramework.ArchTests/EnterpriseFramework.ArchTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/EnterpriseTestFramework.LoadTests/EnterpriseTestFramework.LoadTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/EnterpriseTestFramework.Tests/EnterpriseTestFramework.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/EnterpriseTestFramework.UnitTests/EnterpriseTestFramework.UnitTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+</Solution>

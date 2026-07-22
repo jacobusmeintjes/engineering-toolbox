@@ -1,0 +1,37 @@
+{
+  "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+  "tasks": [
+    {
+      "name": "build",
+      "group": "pre-push",
+      "command": "dotnet",
+      "args": ["build", "EnterpriseTestFramework.slnx", "-c", "Release"],
+      "output": "always"
+    },
+    {
+      "name": "archunit-tests",
+      "group": "pre-push",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "tests/EnterpriseFramework.ArchTests/EnterpriseFramework.ArchTests.csproj",
+        "-c", "Release",
+        "--no-build"
+      ],
+      "output": "always"
+    },
+    {
+      "name": "unit-tests",
+      "group": "pre-push",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "tests/EnterpriseFramework.Tests/EnterpriseFramework.Tests.csproj",
+        "-c", "Release",
+        "--no-build",
+        "--filter", "Category!=Integration"
+      ],
+      "output": "always"
+    }
+  ]
+}

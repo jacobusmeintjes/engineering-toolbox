@@ -1,0 +1,26 @@
+# Shared build/restore steps referenced by both the PR and nightly pipelines.
+# Keeping this in one template avoids drift between what "fast" and "full" runs actually build.
+parameters:
+  - name: buildConfiguration
+    type: string
+    default: 'Release'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET 9 SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '9.x'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore'
+    inputs:
+      command: 'restore'
+      projects: '**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build'
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+      arguments: '--configuration ${{ parameters.buildConfiguration }} --no-restore'

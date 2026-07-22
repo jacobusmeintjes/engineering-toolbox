@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: 'test-framework'
+    static_configs:
+      - targets: ['test-runner:9101']   # your test project's Prometheus exporter port
+        labels:
+          service: 'test-framework'
+
+  - job_name: 'trade-services'
+    static_configs:
+      - targets: ['orders-api:9101', 'positions-api:9101']  # adjust to your actual service names/ports
+        labels:
+          environment: 'local'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

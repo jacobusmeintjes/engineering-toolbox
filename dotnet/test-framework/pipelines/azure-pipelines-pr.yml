@@ -1,0 +1,93 @@
+# Fast feedback pipeline: runs on every PR. ArchTests run first as a cheap structural gate
+# (mirrors the local Husky.Net pre-push hook) before the fuller unit test suite. Load tests
+# are deliberately excluded here — they run on the nightly pipeline instead.
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  maxPrLines: 400   # settable at queue time for justified exceptions
+
+steps:
+  - checkout: self
+    fetchDepth: 0   # full history needed to diff against the PR target branch
+
+  # --- PR size gate (fails fast, before build) ---
+  # Azure DevOps has no native branch policy for PR size, so it's enforced here as a
+  # build validation step. Large PRs correlate strongly with shallow reviews; keeping
+  # them small is itself a maintainability fitness function. Generated/lock files are
+  # excluded so the limit measures reviewable change, not churn.
+  - script: |
+      git fetch origin $(System.PullRequest.TargetBranch)
+      CHANGED=$(git diff --numstat origin/$(System.PullRequest.TargetBranch)...HEAD \
+        -- . ':(exclude)*.lock' ':(exclude)*.Designer.cs' ':(exclude)**/PublicAPI.*.txt' \
+        | awk '{ adds += $1; dels += $2 } END { print adds + dels }')
+      CHANGED=${CHANGED:-0}
+      echo "Changed lines (adds + deletes, exclusions applied): $CHANGED / limit $(maxPrLines)"
+      if [ "$CHANGED" -gt "$(maxPrLines)" ]; then
+        echo "##vso[task.logissue type=error]PR changes $CHANGED lines, exceeding the $(maxPrLines)-line limit. Split it into smaller PRs, or override maxPrLines at queue time for a justified exception."
+        exit 1
+      fi
+    displayName: 'PR size gate (max $(maxPrLines) changed lines)'
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+
+  - template: templates/build-steps.yml
+    parameters:
+      buildConfiguration: $(buildConfiguration)
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Architecture fitness functions (ArchTests)'
+    inputs:
+      command: 'test'
+      projects: 'tests/EnterpriseTestFramework.ArchTests/EnterpriseTestFramework.ArchTests.csproj'
+      arguments: '--configuration $(buildConfiguration) --no-build --logger trx'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Unit tests'
+    inputs:
+      command: 'test'
+      projects: 'tests/EnterpriseTestFramework.UnitTests/EnterpriseTestFramework.UnitTests.csproj'
+      arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage" --logger trx'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '**/*.trx'
+
+  - task: PublishCodeCoverageResults@2
+    displayName: 'Publish coverage'
+    condition: succeededOrFailed()
+    inputs:
+      summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+
+  # --- Security fitness functions (continuous cadence) ---
+
+  - script: |
+      # Fail the build if any direct or transitive dependency has a known CVE.
+      dotnet list EnterpriseTestFramework.sln package --vulnerable --include-transitive 2>&1 | tee vuln-report.txt
+      if grep -qiE "has the following vulnerable packages" vuln-report.txt; then
+        echo "##vso[task.logissue type=error]Vulnerable NuGet packages detected"
+        exit 1
+      fi
+    displayName: 'Dependency vulnerability scan'
+
+  - script: |
+      # Secrets detection — fail if credentials/keys were committed.
+      curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xz gitleaks
+      ./gitleaks detect --source . --no-git --redact --exit-code 1
+    displayName: 'Secrets detection (gitleaks)'
+
+  - script: |
+      dotnet tool install --global nuget-license
+      nuget-license -i EnterpriseTestFramework.sln -t -a allowed-licenses.json
+    displayName: 'NuGet license compliance'

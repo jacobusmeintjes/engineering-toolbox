@@ -1,0 +1,66 @@
+# Heavier, less frequent run: full regression + NBomber load tests + chaos-enabled resiliency
+# pass against a real containerized/Aspire-hosted environment. Triggered cadence rather than
+# continuous, per the evolutionary-architecture fitness-function cadence model.
+trigger: none
+
+schedules:
+  - cron: "0 2 * * *"
+    displayName: "Nightly full regression + load"
+    branches:
+      include:
+        - main
+    always: true
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+  - template: templates/build-steps.yml
+    parameters:
+      buildConfiguration: $(buildConfiguration)
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Full functional test suite (real infra via Aspire)'
+    inputs:
+      command: 'test'
+      projects: 'tests/EnterpriseTestFramework.UnitTests/EnterpriseTestFramework.UnitTests.csproj'
+      arguments: '--configuration $(buildConfiguration) --no-build --logger trx --filter "Category!=Resiliency"'
+
+  - script: |
+      dotnet run --project tests/EnterpriseTestFramework.LoadTests/EnterpriseTestFramework.LoadTests.csproj -c $(buildConfiguration) -- --report-folder $(Build.ArtifactStagingDirectory)/nbomber-reports
+    displayName: 'NBomber load test run'
+    env:
+      TARGET_BASE_URL: $(TargetBaseUrl)
+
+  - script: |
+      # CHAOS_ENABLED gates PollySimmyChaosEngine registration; only ever true here, never in prod.
+      export CHAOS_ENABLED=true
+      dotnet test tests/EnterpriseTestFramework.UnitTests/EnterpriseTestFramework.UnitTests.csproj -c $(buildConfiguration) --filter Category=Resiliency
+    displayName: 'Resiliency / chaos-enabled test pass'
+
+  - script: |
+      # Mutation testing (Stryker.NET) — validates the test suite kills mutants, gating on
+      # mutation score rather than line coverage ("100% line coverage, zero mutation kill rate"
+      # must not pass as healthy). Runs nightly rather than per-PR because it's slow; the
+      # thresholds.break value in stryker-config.json starts at 0 (informational) and should be
+      # raised once a baseline mutation score is established. For PR-time incremental runs,
+      # `dotnet stryker --since main` mutates only changed code.
+      dotnet tool restore
+      dotnet stryker
+    displayName: 'Mutation tests (Stryker.NET on Core)'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Stryker mutation report'
+    condition: succeededOrFailed()
+    inputs:
+      pathToPublish: 'StrykerOutput'
+      artifactName: 'stryker-mutation-report'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish NBomber HTML/CSV reports'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)/nbomber-reports'
+      artifactName: 'nbomber-reports'

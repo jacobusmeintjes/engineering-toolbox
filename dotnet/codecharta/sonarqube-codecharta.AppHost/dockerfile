@@ -1,0 +1,10 @@
+FROM node:latest
+RUN apt-get -y update \
+     && apt-get install default-jre -y \
+     && apt-get install default-jdk -y
+
+RUN --mount=type=cache,target=/root/.npm npm i -g codecharta-analysis
+
+RUN ccsh -h
+
+ENTRYPOINT ["/bin/bash", "-c", "echo 'Hello World'; sleep infinity"]
