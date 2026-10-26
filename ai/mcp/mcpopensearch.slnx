@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenSearchMcpServer/OpenSearchMcpServer.csproj" />
+    <Project Path="src/TestMetrics/TestMetrics.csproj" />
+  </Folder>  
+  <Project Path="mcpopensearch.AppHost/mcpopensearch.AppHost.csproj" />
+  <Project Path="mcpopensearch.ServiceDefaults/mcpopensearch.ServiceDefaults.csproj" />  
+</Solution>

@@ -1,0 +1,55 @@
+@TestMetrics_HostAddress = http://localhost:5125
+
+### List all vehicles
+GET {{TestMetrics_HostAddress}}/api/vehicles
+Accept: application/json
+
+### Create a vehicle (captures the new id for the requests below)
+# @name createVehicle
+POST {{TestMetrics_HostAddress}}/api/vehicles
+Content-Type: application/json
+
+{
+  "make": "Toyota",
+  "model": "Corolla",
+  "year": 2020,
+  "vin": "JTDBR32E720000001"
+}
+
+###
+
+@vehicleId = {{createVehicle.response.body.$.id}}
+
+### Get a vehicle by id
+GET {{TestMetrics_HostAddress}}/api/vehicles/{{vehicleId}}
+Accept: application/json
+
+### Update a vehicle
+PUT {{TestMetrics_HostAddress}}/api/vehicles/{{vehicleId}}
+Content-Type: application/json
+
+{
+  "make": "Toyota",
+  "model": "Camry",
+  "year": 2022,
+  "vin": "JTDBR32E720000001"
+}
+
+### Delete a vehicle
+DELETE {{TestMetrics_HostAddress}}/api/vehicles/{{vehicleId}}
+
+### Get a missing vehicle (expect 404)
+GET {{TestMetrics_HostAddress}}/api/vehicles/999999
+Accept: application/json
+
+### Create an invalid vehicle (expect 400)
+POST {{TestMetrics_HostAddress}}/api/vehicles
+Content-Type: application/json
+
+{
+  "make": "",
+  "model": "",
+  "year": 1800
+}
+
+###
