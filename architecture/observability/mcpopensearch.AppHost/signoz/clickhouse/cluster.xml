@@ -1,0 +1,25 @@
+<clickhouse>
+  <zookeeper>
+    <node>
+      <host>zookeeper-1</host>
+      <port>2181</port>
+    </node>
+  </zookeeper>
+  <remote_servers>
+    <cluster>
+      <shard>
+        <replica>
+          <host>clickhouse</host>
+          <port>9000</port>
+        </replica>
+      </shard>
+    </cluster>
+  </remote_servers>
+  <macros>
+    <shard>01</shard>
+    <replica>01</replica>
+  </macros>
+  <distributed_ddl>
+    <path>/clickhouse/task_queue/ddl</path>
+  </distributed_ddl>
+</clickhouse>

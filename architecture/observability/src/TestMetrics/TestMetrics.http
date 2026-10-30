@@ -1,4 +1,4 @@
-@TestMetrics_HostAddress = http://localhost:5125
+@TestMetrics_HostAddress = https://localhost:7077
 
 ### List all vehicles
 GET {{TestMetrics_HostAddress}}/api/vehicles
